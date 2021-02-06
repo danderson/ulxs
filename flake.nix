@@ -14,6 +14,7 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            redo-apenwarr
             go
             goimports
             python3
