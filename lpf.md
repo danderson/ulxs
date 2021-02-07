@@ -40,6 +40,36 @@ LOCATE COMP "ftdi_rxd" SITE "L4"; # FPGA transmits to ftdi
 IOBUF PORT "ftdi_rxd" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=4;
 ```
 
+## Signal names
+
+Several directives accept signal names to reference wires in your
+design. The signal names correspond to the ports in your design's
+top-level module. Signal names are case sensitive, so must exactly
+match the definitions in your HDL.
+
+If your top-level ports contain arrays, your LPF file must manage each
+array bit individually. Array bits are referenced using the syntax
+`array_name[idx]`.
+
+When handling signals, remember that by the time the LPF file is being
+read, synthesis has already been done. So, if you declared a
+single-ended output signal, it makes no sense to tie it to a pin
+configured as a differential input. Your synthesis tool will still
+happily produce a bitstream describing this, but your design is not
+going to work correctly.
+
+As an example, if your top-level Verilog module is:
+
+```
+module top(input clk, input [2:0] test_btn, output [1:0] statusLeds);
+  ...
+endmodule
+```
+
+Then your LPF file needs to define configuration for signals named
+`clk`, `test_btn[0]`, `test_btn[1]`, `test_btn[2]`, `statusLeds[0]`,
+and `statusLeds[1]`.
+
 ## SYSCONFIG directive
 
 The SYSCONFIG directive sets global FPGA options relating to bitstream
@@ -141,10 +171,8 @@ SYSCONFIG CONFIG_IOVOLTAGE=3.3 COMPRESS_CONFIG=ON MCCLK_FREQ=62;
 
 ## LOCATE COMP directive
 
-The `LOCATE COMP` directive assigns a wire in your design to a
-physical pin of the FPGA. This is necessary to get your signals out of
-the FPGA, and acts as a constraint on the placing and routing of your
-design in the FPGA. It is commonly paired with an `IOBUF PORT`
+The `LOCATE COMP` directive assigns top-level signal in your design to
+a physical pin of the FPGA. It is commonly paired with an `IOBUF PORT`
 directive to fully specify the behavior of the pin.
 
 The syntax is:
@@ -153,9 +181,8 @@ The syntax is:
 LOCATE COMP "signal_name" SITE "pin_name";
 ```
 
-The `signal_name` is the name of an input or output of your top-level
-HDL component. Arrays can be mapped to pins one bit at a time with the
-syntax `array_name[idx]`.
+`signal_name` is the name of a top-level signal in your HDL. See the
+"Signal names" section above for detailed syntax and behavior.
 
 The `pin_name` is the name of the pin from the datasheet, e.g. `H3` or
 `R18`.
@@ -169,10 +196,14 @@ LOCATE COMP "btn[0]" SITE "D6";
 
 ## FREQUENCY PORT directive
 
-The `FREQUENCY PORT` directive adds a timing constraint to an FPGA
-pin. Typically, you would use this to tell the place-and-route tool
-about incoming clock signals, so that timing analysis can verify that
-the design is stable at that frequency.
+The `FREQUENCY PORT` directive adds a timing constraint to a top-level
+signal in your design. Typically, you would use this to tell the
+place-and-route tool about incoming clock signals, so that timing
+analysis can verify that the design is stable at that frequency.
+
+[Ed. TODO: can you define frequency constraints for internal signals
+as well? For example, if you use a PLL module to generate a 300MHz
+internal clock, can you tag that wire with a frequency constraint?]
 
 The syntax is:
 
@@ -180,7 +211,10 @@ The syntax is:
 FREQUENCY PORT "signal_name" number unit;
 ```
 
-Valid units are `MHZ`, `KHZ` and `HZ`.
+`signal_name` is the name of a top-level signal in your HDL. See the
+"Signal names" section above for detailed syntax and behavior.
+
+Valid `unit`s are `MHZ`, `KHZ` and `HZ`.
 
 Example:
 
@@ -190,8 +224,8 @@ FREQUENCY PORT "clk" 25 MHZ;
 
 ## IOBUF PORT directive
 
-The `IOBUF PORT` directive configures the I/O pin properties of a wire
-attached to a physical pin of the FPGA. It is commonly paired with a
+The `IOBUF PORT` directive configures the physical I/O pin properties
+of a top-level signal in your design. It is commonly paired with a
 `LOCATE COMP` line to attach an HDL wire to the pin.
 
 The syntax is:
@@ -200,50 +234,25 @@ The syntax is:
 IOBUF PORT "signal_name" KEY=VALUE...;
 ```
 
-The `signal_name` is the name of an input or output of your top-level
-HDL component. Arrays can be referenced with the syntax
-`array_name[idx]`.
+`signal_name` is the name of a top-level signal in your HDL. See the
+"Signal names" section above for detailed syntax and behavior.
 
 The following key/value pairs exist:
  - `IO_TYPE`: specifies the electrical I/O standard the pin will
    obey. Valid values are constrained by the I/O reference voltage
    provided to the relevant I/O bank, as detailed in TN1262. All valid
    values are:
-     - Single pin standards:
-		 - `HSUL12`
-		 - `SSTL15_I`
-		 - `SSTL15_II`
-		 - `SSTL135_I`
-		 - `SSTL135_II`
-		 - `SSTL18_I`
-		 - `SSTL18_II`
-		 - `LVTTL33`
-		 - `LVCMOS33`
-		 - `LVCMOS25`
-		 - `LVCMOS18`
-		 - `LVCMOS15`
-		 - `LVCMOS12`
-	 - Differential standards (consult TN1262 for valid pairings):
-		 - `LVDS`
-		 - `LVDS25E`
-		 - `BLVDS25`
-		 - `LVPECL33`
-		 - `LVPECL33E`
-		 - `MLVDS`
-		 - `MLVDS25E`
-		 - `SLVS`
-		 - `SUBLVDS`
-		 - `HSUL12D`
-		 - `SSTL15D_I`
-		 - `SSTL15D_II`
-		 - `SSTL135D_I`
-		 - `SSTL135D_II`
-		 - `SSTL18D_I`
-		 - `SSTL18D_II`
-		 - `LVTTL33D`
-		 - `LVCMOS33D`
-		 - `LVCMOS25D`
-		 - `LVCMOS18D`
+     - Basic single pin standards: `LVTTL33`, `LVCMOS33`, `LVCMOS25`,
+       `LVCMOS18`, `LVCMOS15`, `LVCMOS12`.
+	 - Advanced single pin standards (mostly for driving different
+       DRAM chips): `HSUL12`, `SSTL15_I`, `SSTL15_II`, `SSTL135_I`,
+       `SSTL135_II`, `SSTL18_I`, `SSTL18_II`.
+	 - Differential standards (must be paired with another signal,
+       consult TN1262 for valid pin pairings): `LVDS`, `LVDS25E`,
+       `BLVDS25`, `LVPECL33`, `LVPECL33E`, `MLVDS`, `MLVDS25E`,
+       `SLVS`, `SUBLVDS`, `HSUL12D`, `SSTL15D_I`, `SSTL15D_II`,
+       `SSTL135D_I`, `SSTL135D_II`, `SSTL18D_I`, `SSTL18D_II`,
+       `LVTTL33D`, `LVCMOS33D`, `LVCMOS25D`, `LVCMOS18D`.
  - `OPENDRAIN`: whether this pin should be configured as an open
    drain. One of `ON` or `OFF` (the default).
  - `DRIVE`: the amount of current (in mA) to drive when
