@@ -248,9 +248,8 @@ The following key/value pairs exist:
    drain. One of `ON` or `OFF` (the default).
  - `DRIVE`: the amount of current (in mA) to drive when
    outputting. Valid values depend on the I/O type, see table 8 of
-   TN1262. The value here seems to be the 1-indexed offset in the list
-   of valid values. For example, LVTTL33 supports 4 drive strengths,
-   so the valid values of `DRIVE` would be `4`, `8`, `12`, `16`.
+   TN1262. For example, valid values for LVTTL33 are `4`, `8`, `12`,
+   and `16`.
  - `DIFFDRIVE`: the amount of drive current for pins using LVDS
    mode. The only allowed value is 3.5mA, its encoding is unknown.
  - `TERMINATION`: the input parallel termination to configure, if
