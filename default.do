@@ -43,13 +43,16 @@ case "$1" in
 		find "$srcdir" -name "*.v" -print0 | xargs -0 redo-ifchange
 		srcs=$(find "$srcdir" -name "*.v" | tr '\n' ' ')
 		cat >"$pfx.ys" <<EOF
-read_verilog $srcs
+read_verilog -sv $srcs
 hierarchy -top ${pfx##*/}
 synth_ecp5 -json $3
 EOF
 		verilator --lint-only -Wall $srcs
 		yosys -l "$log" -E "$deps" -v1 -Q -T -e ".*" "$pfx.ys"
 		cut -f2- -d: | xargs redo-ifchange
+		;;
+	clean)
+		rm -rf out
 		;;
 	*)
 		echo "don't know how to build $1"

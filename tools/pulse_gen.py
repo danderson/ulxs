@@ -39,7 +39,7 @@ def main():
         actual_ratio = scaled_in_freq / incr
         error_pct = abs(actual_ratio-target_ratio) / target_ratio * 100
         if error_pct < args.error_pct:
-            print("// output {}Hz, {}x oversample, error {:.2}%\nacc_width={},\nacc_incr={}".format(args.out_freq, args.oversample, error_pct, width, incr))
+            print("// input {}Hz, output {}Hz, {}x oversample, error {:.2}%\nacc_width={},\nacc_incr={}".format(args.in_freq, args.out_freq, args.oversample, error_pct, width, incr))
             break
 
 if __name__ == '__main__':

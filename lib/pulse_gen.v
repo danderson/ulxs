@@ -6,12 +6,12 @@
 // The module parameters acc_width and acc_incr set the desired output
 // frequency. Use ../tools/pulse_gen.py to calculate these parameters
 // based on the input frequency and desired output frequency.
-module pulse_gen(input clk, output pulse);
+module pulse_gen(input i_clk, output o_pulse);
    // Default parameters generate a pulse for every clock pulse.
    parameter acc_width=1, acc_incr=2;
 
    reg [acc_width:0] cnt;
-   always @(posedge clk) cnt <= cnt[acc_width-1:0] + acc_incr;
+   always @(posedge i_clk) cnt <= cnt[acc_width-1:0] + acc_incr;
 
-   assign pulse = cnt[acc_width];
+   assign o_pulse = cnt[acc_width];
 endmodule
