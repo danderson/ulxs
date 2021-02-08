@@ -1,8 +1,15 @@
 module uart (input i_clk,
+
+			 // Receiver
 			 input i_rx,
-			 output reg [7:0] o_byte,
-			 output o_ready);
+			 output reg [7:0] o_rx_byte,
+			 output reg o_rx_ready
+			 );
    parameter baud_acc_width=1, baud_acc_incr=2;
+
+   //
+   // Receiver
+   //
 
    // Generate a pulse 16 times faster than the desired baud rate.
    wire baud_x16;
@@ -71,11 +78,13 @@ module uart (input i_clk,
    // state machine numeric values such that rx_state[3] is handily
    // "data bit is being read".
    wire rx_data_bit = rx_state[3];
-   always @(posedge i_clk) if (rx_sample && rx_data_bit) o_byte <= {rx_bit, o_byte[7:1]};
+   always @(posedge i_clk) begin
+	  if (rx_sample && rx_data_bit) o_rx_byte <= {rx_bit, o_rx_byte[7:1]};
 
-   // And finally, generate the "output ready" bit once we've received
-   // the stop bit. Note we ignore the value of the stop bit, since
-   // accounting for bad framing would require even more interface,
-   // and I don't feel clever enough for that yet.
-   assign o_ready = rx_sample && rx_state == STOP;
+	  // And finally, generate the "output ready" bit once we've received
+	  // the stop bit. Note we ignore the value of the stop bit, since
+	  // accounting for bad framing would require even more interface,
+	  // and I don't feel clever enough for that yet.
+	  o_rx_ready <= rx_sample && rx_state == STOP;
+   end
 endmodule

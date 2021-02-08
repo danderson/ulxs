@@ -7,7 +7,7 @@ module debugport(input clk_25mhz,
    wire uart_ready;
    // input 25000000Hz, output 115200Hz, 16x oversample, error 0.0033%
    uart #(.baud_acc_width(11), .baud_acc_incr(151))
-     uart(.i_clk(clk_25mhz), .i_rx(ftdi_txd), .o_byte(uart_byte), .o_ready(uart_ready));
+     uart(.i_clk(clk_25mhz), .i_rx(ftdi_txd), .o_rx_byte(uart_byte), .o_rx_ready(uart_ready));
 
    // Only display a byte when it's been completely read-in.
    always @(posedge clk_25mhz) begin
