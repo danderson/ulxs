@@ -12,12 +12,11 @@ FPGA pins, but requires tweaking for some applications (e.g. to add
 pull-ups, pull-downs, change the drive current...).
 
 I tried getting a license for Lattice Diamond on their website, but
-preposterously they won't let me get a free license to use their
+they won't let me get a free license to use their
 software without "account approval", which takes "up to 2 business
 days". It's Saturday, so instead of waiting for that I'm going to
 write down a google-able specification of LPF files, as parsed by
-nextpnr, so that people don't have to go through that idiocy
-themselves.
+nextpnr, so that people don't have to go through that themselves.
 
 ## General format
 
