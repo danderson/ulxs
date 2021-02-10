@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "davepkgs": {
+      "locked": {
+        "lastModified": 1612933191,
+        "narHash": "sha256-q9a+043u7F1/zZQlkBhCHtc7L2AHVeCUmrVrLYz4ze4=",
+        "owner": "danderson",
+        "repo": "nixpkgs",
+        "rev": "ced408fdaa8447d1df2fd928300f4e72c8a529c5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "danderson",
+        "ref": "nmigen-update",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -49,6 +65,7 @@
     },
     "root": {
       "inputs": {
+        "davepkgs": "davepkgs",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs"

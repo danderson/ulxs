@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    davepkgs.url = "github:danderson/nixpkgs/nmigen-update";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat = { # for shell.nix
       url = "github:edolstra/flake-compat";
@@ -8,25 +9,35 @@
     };
   };
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  outputs = { nixpkgs, davepkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
-      let pkgs = nixpkgs.legacyPackages.${system}; in
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        dave = davepkgs.legacyPackages.${system};
+        python-nmigen = dave.python3.withPackages (ps: with ps; [
+          nmigen
+          nmigen-boards
+          nmigen-soc
+        ]);
+      in
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            redo-apenwarr
+            dfu-util
+            fujprog
+            git
             go
             goimports
-            python3
             gtkwave
-            git
-            yosys
-            symbiyosys
-            trellis
             nextpnr
+            python-nmigen
+            redo-apenwarr
+            dave.symbiyosys
+            trellis
             verilator
-            fujprog
-            dfu-util
+            yices
+            yosys
+            z3
           ];
         };
       });
