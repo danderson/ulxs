@@ -11,7 +11,7 @@ endinterface
 
 module mkTop (ITop);
    Reg#(Bool) run <- mkPinSync;
-   Reg#(UInt#(32)) cnt <- mkReg(0);
+   Reg#(UInt#(28)) cnt <- mkReg(0);
 
    rule increment (run);
 	  cnt <= cnt + 1;

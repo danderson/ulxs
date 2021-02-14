@@ -34,6 +34,7 @@
             go
             goimports
             gtkwave
+            imagemagick
             nextpnr
             dave.openfpgaloader
             python-nmigen
