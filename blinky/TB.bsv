@@ -1,13 +1,13 @@
 package TB;
 
-import Blinky::*;
+import Top::*;
 import StmtFSM::*;
 
 module mkTB ();
-   let blinky <- mkBlinky ();
+   let blinky <- mkTop ();
 
    rule pause;
-	  blinky.pause(False);
+	  blinky.btn1(True);
    endrule
 
    let test = seq

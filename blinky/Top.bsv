@@ -1,7 +1,6 @@
 package Top;
 
 import PinSynchronizer::*;
-import GetPut::*;
 
 interface ITop;
    (* always_ready *)
