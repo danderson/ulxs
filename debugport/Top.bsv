@@ -15,7 +15,7 @@ module mkTop (ITop);
    Reg#(Bit#(8)) v <- mkReg(0);
 
    rule toggle (s);
-	  v <= ~v;
+      v <= ~v;
    endrule
 
    method leds = v;
