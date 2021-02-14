@@ -2,16 +2,16 @@
   "nodes": {
     "davepkgs": {
       "locked": {
-        "lastModified": 1612933191,
-        "narHash": "sha256-q9a+043u7F1/zZQlkBhCHtc7L2AHVeCUmrVrLYz4ze4=",
+        "lastModified": 1612937402,
+        "narHash": "sha256-9xIGj71JAouSQNhIZey3s9Q4DeIQsjkFP5OmQLJUjls=",
         "owner": "danderson",
         "repo": "nixpkgs",
-        "rev": "ced408fdaa8447d1df2fd928300f4e72c8a529c5",
+        "rev": "b8e17dfbef2c45e4ca8ef3e6fe9b0651cf4df60d",
         "type": "github"
       },
       "original": {
         "owner": "danderson",
-        "ref": "nmigen-update",
+        "ref": "openfpgaloader",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -34,11 +34,11 @@
     },
     "flake-utils": {
       "locked": {
-        "lastModified": 1609246779,
-        "narHash": "sha256-eq6ZXE/VWo3EMC65jmIT6H/rrUc9UWOWVujkzav025k=",
+        "lastModified": 1610051610,
+        "narHash": "sha256-U9rPz/usA1/Aohhk7Cmc2gBrEEKRzcW4nwPWMPwja4Y=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "08c7ad4a0844adc4a7f9f5bb3beae482e789afa4",
+        "rev": "3982c9903e93927c2164caa727cd3f6a0e6d14cc",
         "type": "github"
       },
       "original": {
@@ -49,16 +49,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1609254719,
-        "narHash": "sha256-XB3391z8r81Bt8NfQzB+tYdTWoraY0QVdXM21JhfW+Y=",
+        "lastModified": 1613053190,
+        "narHash": "sha256-2mksFALW/JFjAsO6HUSneHk0SCjoKWgSxeXgY7KptrY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "733e537a8ad76fd355b6f501127f7d0eb8861775",
+        "rev": "a58a0b5098f0c2a389ee70eb69422a052982d990",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-unstable",
+        "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
