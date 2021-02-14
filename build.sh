@@ -24,8 +24,8 @@ do_sim() {
 	(
 		odir="../$OUT"
 		cd "$DIR"
-		bsc -sim -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTB -u "TB.bsv"
-		bsc -sim -simdir "$odir" -info-dir "$odir" -bdir "$odir" -e mkTB -o "$odir/$DIR.sim"
+		bsc -check-assert -sim -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTB -u "TB.bsv"
+		bsc -check-assert -sim -simdir "$odir" -info-dir "$odir" -bdir "$odir" -e mkTB -o "$odir/$DIR.sim"
 		echo "==================="
 		$odir/$DIR.sim
 	)
@@ -56,7 +56,7 @@ do_draw() {
 	(
 		odir="../$OUT"
 		cd "$DIR"
-		bsc -verilog -vdir "$odir" -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTop -u "Top.bsv"
+		bsc  -check-assert -verilog -vdir "$odir" -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTop -u "Top.bsv"
 		cat >"$odir/mkTop_draw.ys" <<EOF
 read_verilog -sv $odir/mkTop.v
 hierarchy -check -top mkTop
