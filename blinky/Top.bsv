@@ -6,14 +6,14 @@ interface ITop;
    (* always_ready *)
    method Bit#(8) leds();
    (* always_enabled *)
-   method Action btn1(Bool v);
+   method Action btn1(bit v);
 endinterface
 
 module mkTop (ITop);
-   Reg#(Bool) run <- mkPinSync;
+   Reg#(bit) run <- mkPinSync(0);
    Reg#(UInt#(28)) cnt <- mkReg(0);
 
-   rule increment (run);
+   rule increment (run == 1);
 	  cnt <= cnt + 1;
    endrule
 
