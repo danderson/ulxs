@@ -5,6 +5,7 @@ import StmtFSM::*;
 
 import Strobe::*;
 import PinSynchronizer::*;
+import Serial::*;
 
 module mkTB ();
    Reg#(UInt#(32)) cycles <- mkReg(0);
@@ -15,16 +16,19 @@ module mkTB ();
 
    let strobe <- testStrobe();
    let sync <- testPinSync();
+   let serialRX <- testSerialReceiver();
 
-   function RStmt#(Bit#(0)) runTest(FSM test);
+   function RStmt#(Bit#(0)) run(String name, FSM test);
       return seq
                 test.start();
                 test.waitTillDone();
+                $display("OK ", name);
              endseq;
    endfunction
    mkAutoFSM(par
-                runTest(strobe);
-                runTest(sync);
+                run("testStrobe", strobe);
+                run("testPinSync", sync);
+                run("testSerialReceiver", serialRX);
              endpar);
 endmodule
 

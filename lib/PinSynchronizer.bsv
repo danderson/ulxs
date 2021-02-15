@@ -25,7 +25,6 @@ module testPinSync (FSM);
                        s <= 0;
                        dynamicAssert(s == 1, "synchronizer didn't synchronize");
                        dynamicAssert(s == 0, "synchronizer too slow");
-                       $display("testPinSync OK");
                     endseq);
    return fsm;
 endmodule

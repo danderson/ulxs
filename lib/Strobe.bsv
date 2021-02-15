@@ -77,7 +77,6 @@ module testStrobe (FSM);
                        dynamicAssert(raw_strobes == 53, "wrong number of raw strobes");
                        await(cycles == 1000);
                        dynamicAssert(cooked_strobes == 230, "wrong number of cooked strobes");
-                       $display("testStrobe OK");
                     endseq);
    return fsm;
 endmodule

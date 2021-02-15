@@ -1,5 +1,6 @@
 package Serial;
 
+import Assert::*;
 import Cntrs::*;
 import Strobe::*;
 import StmtFSM::*;
@@ -74,6 +75,46 @@ module mkSerialTransmitter #(Integer clk_freq, Real baud_rate) (ISerialTransmitt
       shift <= b;
       writer.start();
    endmethod
+endmodule
+
+module testSerialReceiver (FSM);
+   let timer <- mkStrobe(200, 7);
+   let r <- mkSerialReceiver(200, 7);
+   Reg#(bit) rx <- mkReg(1);
+   rule rx_pump;
+      r.rx(rx);
+   endrule
+
+   let write_test = seq
+                       rx <= 1;
+                       rx <= 0; // start
+                       rx <= 1;
+                       rx <= 1;
+                       rx <= 1;
+                       rx <= 0;
+                       rx <= 1;
+                       rx <= 1;
+                       rx <= 0;
+                       rx <= 1;
+                       rx <= 1; // stop
+                    endseq;
+   let write_fsm <- mkFSMWithPred(write_test, timer);
+
+   let test = par
+                 seq
+                    write_fsm.start();
+                    write_fsm.waitTillDone();
+                 endseq
+                 seq
+                    action
+                       let b = r;
+                       let want = 8'b10110111;
+                       dynamicAssert(b == want, "wrong byte received");
+                    endaction
+                 endseq
+              endpar;
+   let fsm <- mkFSM(test);
+   return fsm;
 endmodule
 
 endpackage
