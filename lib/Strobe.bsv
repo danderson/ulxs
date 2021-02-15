@@ -54,7 +54,7 @@ module mkStrobe #(parameter Integer main_clk_freq,
 endmodule
 
 
-module mkStrobeTest (FSM);
+module testStrobe (FSM);
    Reg#(UInt#(32)) cycles <- mkReg(0);
    rule count_cycles;
       cycles <= cycles+1;
@@ -77,7 +77,7 @@ module mkStrobeTest (FSM);
                        dynamicAssert(raw_strobes == 53, "wrong number of raw strobes");
                        await(cycles == 1000);
                        dynamicAssert(cooked_strobes == 230, "wrong number of cooked strobes");
-                       $display("StrobeTest OK");
+                       $display("testStrobe OK");
                     endseq);
    return fsm;
 endmodule

@@ -4,6 +4,7 @@ import Assert::*;
 import StmtFSM::*;
 
 import Strobe::*;
+import PinSynchronizer::*;
 
 module mkTB ();
    Reg#(UInt#(32)) cycles <- mkReg(0);
@@ -12,7 +13,8 @@ module mkTB ();
       dynamicAssert(cycles <= 100000, "test timeout");
    endrule
 
-   let strobe <- mkStrobeTest();
+   let strobe <- testStrobe();
+   let sync <- testPinSync();
 
    function RStmt#(Bit#(0)) runTest(FSM test);
       return seq
@@ -22,6 +24,7 @@ module mkTB ();
    endfunction
    mkAutoFSM(par
                 runTest(strobe);
+                runTest(sync);
              endpar);
 endmodule
 
