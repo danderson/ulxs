@@ -4,12 +4,8 @@ import Real::*;
 import StmtFSM::*;
 import Assert::*;
 
-interface IStrobe;
-   method Bool _read();
-endinterface
-
 module mkStrobeRaw #(parameter Integer reg_width,
-                     parameter Integer reg_incr) (IStrobe);
+                     parameter Integer reg_incr) (ReadOnly#(Bool));
    Reg#(UInt#(64)) cnt <- mkReg(0);
 
    let pw <- mkPulseWire();
@@ -26,7 +22,7 @@ module mkStrobeRaw #(parameter Integer reg_width,
 endmodule
 
 module mkStrobe #(parameter Integer main_clk_freq,
-                  parameter Real strobe_freq) (IStrobe);
+                  parameter Real strobe_freq) (ReadOnly#(Bool));
    // How far off the perfect clock ratio we're willing to be. If the
    // clocks don't divide perfectly into each other, the output will
    // jitter in small amounts around the ideal value.
