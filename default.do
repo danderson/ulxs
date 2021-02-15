@@ -38,7 +38,7 @@ case "$1" in
 	out/*/*.bo)
 		mkdir -p "$1.tmp"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sstem.bsv" | xargs redo-ifchange
-		bsc -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" "$sstem.bsv"
+		bsc -check-assert -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" "$sstem.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
@@ -46,7 +46,7 @@ case "$1" in
 		mkdir -p "$1.tmp"
 		module="${ostem:2}"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sdir/$module.bsv" | xargs redo-ifchange
-		bsc -verilog -p "$odir:$odir/../lib:$bluelib" -vdir "$1.tmp" -bdir "$1.tmp" -g "$ostem" "$sdir/$module.bsv"
+		bsc -check-assert -verilog -p "$odir:$odir/../lib:$bluelib" -vdir "$1.tmp" -bdir "$1.tmp" -g "$ostem" "$sdir/$module.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
@@ -97,14 +97,14 @@ EOF
 		mkdir -p "$1.tmp"
 		module="${ostem:2}"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sdir/$module.bsv" | xargs redo-ifchange
-		bsc -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" -sim -g "$ostem" "$sdir/$module.bsv"
+		bsc -check-assert -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" -sim -g "$ostem" "$sdir/$module.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
 	out/*/*.sim)
 		mkdir -p "$1.tmp"
 		redo-ifchange "$odir/$ostem.ba"
-		bsc -sim -bdir "$odir" -simdir "$1.tmp" -e "$ostem" -o "$3"
+		bsc -check-assert -sim -bdir "$odir" -simdir "$1.tmp" -e "$ostem" -o "$3"
 		rm -rf "$1.tmp"
 		mv -f "$3.so" "$1.so"
 		;;

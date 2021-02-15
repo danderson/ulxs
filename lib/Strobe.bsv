@@ -54,35 +54,32 @@ module mkStrobe #(parameter Integer main_clk_freq,
 endmodule
 
 
-module mkStrobeTest ();
-   Reg#(UInt#(64)) cycles <- mkReg(0);
+module mkStrobeTest (FSM);
+   Reg#(UInt#(32)) cycles <- mkReg(0);
    rule count_cycles;
       cycles <= cycles+1;
    endrule
 
    let raw <- mkStrobeRaw(8, 53);
-   Reg#(UInt#(64)) raw_strobes <- mkReg(0);
+   Reg#(UInt#(32)) raw_strobes <- mkReg(0);
    rule count_raw (raw);
       raw_strobes <= raw_strobes+1;
    endrule
-   rule check_raw (cycles == 256);
-      dynamicAssert(raw_strobes == 53, "wrong number of raw strobes");
-   endrule
 
    let cooked <- mkStrobe(100, 23);
-   Reg#(UInt#(64)) cooked_strobes <- mkReg(0);
+   Reg#(UInt#(32)) cooked_strobes <- mkReg(0);
    rule count_cooked (cooked);
       cooked_strobes <= cooked_strobes+1;
    endrule
-   rule check_cooked (cycles == 1001);
-      dynamicAssert(cooked_strobes == 230, "wrong number of cooked strobes");
-   endrule
 
-   mkAutoFSM(seq
-                repeat (1002) noAction;
-                $display("StrobeTest OK");
-                $finish(0);
-             endseq);
+   let fsm <- mkFSM(seq
+                       await(cycles == 255);
+                       dynamicAssert(raw_strobes == 53, "wrong number of raw strobes");
+                       await(cycles == 1000);
+                       dynamicAssert(cooked_strobes == 230, "wrong number of cooked strobes");
+                       $display("StrobeTest OK");
+                    endseq);
+   return fsm;
 endmodule
 
 endpackage
