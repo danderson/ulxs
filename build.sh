@@ -37,7 +37,17 @@ do_prog() {
 		odir="../$OUT"
 		cd "$DIR"
 		bsc -verilog -vdir "$odir" -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTop -u "Top.bsv"
-		cat >"$odir/mkTop.ys" <<EOF
+		rm "$odir/mkTop.ys"
+		find "$(dirname `which bsc`)/../lib/Verilog" -name '*.v' | while read f; do
+			case "$(basename $f)" in
+				*Z.v|ProbeHook.v|InoutConnect.v|*Load.v|main.v)
+				;;
+				*)
+					echo "read_verilog -sv $f" >>"$odir/mkTop.ys"
+					;;
+			esac
+		done
+		cat >>"$odir/mkTop.ys" <<EOF
 read_verilog -sv $odir/mkTop.v
 hierarchy -check -top mkTop
 scratchpad -set abc9.D 20000
@@ -57,14 +67,24 @@ do_draw() {
 		odir="../$OUT"
 		cd "$DIR"
 		bsc  -check-assert -verilog -vdir "$odir" -simdir "$odir" -info-dir "$odir" -bdir "$odir" -g mkTop -u "Top.bsv"
-		cat >"$odir/mkTop_draw.ys" <<EOF
+		rm "$odir/mkTop_draw.ys"
+		find "$(dirname `which bsc`)/../lib/Verilog" -name '*.v' | while read f; do
+			case "$(basename $f)" in
+				*Z.v|ProbeHook.v|InoutConnect.v|*Load.v|main.v)
+				;;
+				*)
+					echo "read_verilog -sv $f" >>"$odir/mkTop_draw.ys"
+					;;
+			esac
+		done
+		cat >>"$odir/mkTop_draw.ys" <<EOF
 read_verilog -sv $odir/mkTop.v
 hierarchy -check -top mkTop
 proc
 opt
 wreduce
 clean -purge
-show -format svg -width -signed -notitle -colors 1 -prefix $odir/mkTop
+show -format svg -width -signed -notitle -colors 1 -prefix $odir/mkTop mkTop
 EOF
 		yosys -l "$odir/mkTop.draw.log" -v1 -Q -T "$odir/mkTop_draw.ys"
 		convert "$odir/mkTop.svg" "$odir/mkTop.jpg"

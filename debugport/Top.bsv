@@ -1,6 +1,7 @@
 package Top;
 
-import Strobe::*;
+import PinSynchronizer::*;
+import Serial::*;
 
 interface ITop;
    (* always_ready *)
@@ -10,18 +11,21 @@ interface ITop;
 endinterface
 
 module mkTop (ITop);
-   let s <- mkStrobe(25_000_000, 115200*16);
+   // Synchronized input that's safe to read.
+   Reg#(bit) rx <- mkPinSync(1);
 
-   Reg#(Bit#(8)) v <- mkReg(0);
-
-   rule toggle (s);
-      v <= ~v;
+   let uart <- mkSerialReceiver(25_000_000, 115200);
+   rule pump_uart;
+      uart.rx(rx);
    endrule
 
-   method leds = v;
+   Reg#(Bit#(8)) leds_val <- mkReg(0);
+   rule update_leds;
+      leds_val <= uart;
+   endrule
 
-   method Action uart_rx(bit val);
-   endmethod
+   method leds = leds_val._read;
+   method uart_rx = rx._write;
 endmodule
 
 endpackage
