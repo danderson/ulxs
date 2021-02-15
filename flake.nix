@@ -37,6 +37,7 @@
             imagemagick
             nextpnr
             dave.openfpgaloader
+            picocom
             python-nmigen
             redo-apenwarr
             symbiyosys

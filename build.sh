@@ -84,9 +84,13 @@ proc
 opt
 wreduce
 clean -purge
-show -format svg -width -signed -notitle -colors 1 -prefix $odir/mkTop mkTop
+show -format dot -width -signed -stretch -notitle -colors 1 -prefix $odir/mkTop mkTop
 EOF
 		yosys -l "$odir/mkTop.draw.log" -v1 -Q -T "$odir/mkTop_draw.ys"
+		clk_name=$(grep 'label="CLK"' "$odir/mkTop.dot" | head -1 | awk '{print $1}')
+		rst_name=$(grep 'label="RST_N"' "$odir/mkTop.dot" | head -1 | awk '{print $1}')
+		egrep -v "^$clk_name" "$odir/mkTop.dot" | egrep -v "^$rst_name" >"$odir/mkTop_trimmed.dot"
+		dot -Tsvg "$odir/mkTop_trimmed.dot" >"$odir/mkTop.svg"
 		convert "$odir/mkTop.svg" "$odir/mkTop.jpg"
 	)
 }

@@ -27,10 +27,21 @@ module mkTop (ITop);
       tx_bit <= transmitter.tx();
    endrule
 
+   function Bit#(8) rot13(Bit#(8) v);
+      UInt#(8) i = unpack(v);
+      if (i >= 65 && i <= 90)
+         return pack(((i-65+13)%26)+65);
+      else if (i >= 97 && i <= 122)
+         return pack(((i-97+13)%26)+97);
+      else
+         return v;
+   endfunction
+
    Reg#(Bit#(8)) leds_val <- mkReg(0);
    rule update_leds;
-      transmitter <= receiver;
       leds_val <= receiver;
+      let char = rot13(receiver);
+      transmitter <= char;
    endrule
 
    method leds = leds_val._read;
