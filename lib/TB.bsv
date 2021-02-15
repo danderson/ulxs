@@ -17,6 +17,7 @@ module mkTB ();
    let strobe <- testStrobe();
    let sync <- testPinSync();
    let serialRX <- testSerialReceiver();
+   let serialTX <- testSerialTransmitter();
 
    function RStmt#(Bit#(0)) run(String name, FSM test);
       return seq
@@ -29,6 +30,7 @@ module mkTB ();
                 run("testStrobe", strobe);
                 run("testPinSync", sync);
                 run("testSerialReceiver", serialRX);
+                run("testSerialTransmitter", serialTX);
              endpar);
 endmodule
 
@@ -109,6 +111,27 @@ module testSerialReceiver (FSM);
                     endaction
                  endseq
               endpar;
+   let fsm <- mkFSM(test);
+   return fsm;
+endmodule
+
+module testSerialTransmitter (FSM);
+   let t <- mkSerialTransmitter(200, 7);
+   let b <- mkReg(1);
+   let r <- mkSerialReceiver(200, 7);
+
+   rule pump_tx;
+      b <= t.tx();
+   endrule
+   rule pump_rx;
+      r.rx(b);
+   endrule
+
+   let want = 8'b10110011;
+   let test = seq
+                 t <= want;
+                 dynamicAssert(r == want, "wrong byte received");
+              endseq;
    let fsm <- mkFSM(test);
    return fsm;
 endmodule
