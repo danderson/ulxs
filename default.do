@@ -10,6 +10,10 @@ sstem="${sdir}/${ostem}"
 blueroot="$(bsc --help | grep "Bluespec directory: " | awk '{print $3}')"
 bluelib="$blueroot/Libraries"
 bluev="$blueroot/Verilog"
+libpath="$odir:$bluelib"
+if [ "$odir" != "lib" ]; then
+	libpath="$odir:lib:$bluelib"
+fi
 
 make_parent() {
 	mkdir -p "${1%/*}"
@@ -38,7 +42,7 @@ case "$1" in
 	out/*/*.bo)
 		mkdir -p "$1.tmp"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sstem.bsv" | xargs redo-ifchange
-		bsc -check-assert -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" "$sstem.bsv"
+		bsc -check-assert -p "$libpath" -bdir "$1.tmp" "$sstem.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
@@ -46,7 +50,7 @@ case "$1" in
 		mkdir -p "$1.tmp"
 		module="${ostem:2}"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sdir/$module.bsv" | xargs redo-ifchange
-		bsc -check-assert -verilog -p "$odir:$odir/../lib:$bluelib" -vdir "$1.tmp" -bdir "$1.tmp" -g "$ostem" "$sdir/$module.bsv"
+		bsc -check-assert -verilog -p "$libpath" -vdir "$1.tmp" -bdir "$1.tmp" -g "$ostem" "$sdir/$module.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
@@ -97,7 +101,7 @@ EOF
 		mkdir -p "$1.tmp"
 		module="${ostem:2}"
 		./deps.py --extra-lib-dir=lib --build-dir=out "$sdir/$module.bsv" | xargs redo-ifchange
-		bsc -check-assert -p "$odir:$odir/../lib:$bluelib" -bdir "$1.tmp" -sim -g "$ostem" "$sdir/$module.bsv"
+		bsc -check-assert -p "$libpath" -bdir "$1.tmp" -sim -g "$ostem" "$sdir/$module.bsv"
 		mv -f "$1.tmp/$ofile" "$3"
 		rm -rf "$1.tmp"
 		;;
