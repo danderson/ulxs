@@ -9,7 +9,6 @@ blueroot="$(bsc --help | grep "Bluespec directory: " | awk '{print $3}')"
 bluelib="$blueroot/Libraries"
 bluev="$blueroot/Verilog"
 libpath="lib:$bluelib"
-
 buildout="out/${project}"
 
 function phase() {
@@ -21,9 +20,18 @@ function phase() {
 }
 
 mkdir -p "$buildout"
+
+buildout=$(readlink -f "$buildout")
+
+##################
+# Generate Verilog from BSV
+##################
 phase "Bluespec to Verilog"
 bsc -check-assert -u -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:$bluelib" "$project/Top.bsv"
 
+##################
+# Synthesize Verilog
+##################
 phase "Synthesis"
 
 function getLibfiles() {
@@ -42,7 +50,6 @@ function getLibfiles() {
 	done
 	echo
 }
-
 libFiles=$(getLibfiles)
 cat >"$buildout/synth.ys" <<EOF
 read_verilog -defer -sv $libFiles $buildout/mkTop.v
@@ -50,20 +57,27 @@ hierarchy -top mkTop
 scratchpad -set abd9.D 20000
 scratchpad -copy abc9.script.flow3 abc9.script
 EOF
-case "$action" in
-	"")
-		echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
-		;;
-	shell)
-		echo "shell" >>"$buildout/synth.ys"
-		;;
-esac
-yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
-case "$action" in
-	"")
-		phase "Place & Route"
-		nextpnr-ecp5 --85k --detailed-timing-report -q -l "$buildout/pnr.log" --json "$buildout/Top.json" --lpf "$project/ulx3s.lpf" --package CABGA381 --textcfg "$buildout/Top.pnr"
-		cat >"$buildout/filter.awk" <<EOF
+if [ "$action" = "shell" ]; then
+	echo "shell" >>"$buildout/synth.ys"
+else
+	echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
+fi
+cp ${project}/*.hex "$buildout"
+(
+	cd "$buildout"
+	yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
+)
+
+if [ "$action" != "" ]; then
+	exit 0
+fi
+
+##################
+# Place and Route
+##################
+phase "Place & Route"
+nextpnr-ecp5 --85k --detailed-timing-report -q -l "$buildout/pnr.log" --json "$buildout/Top.json" --lpf "$project/ulx3s.lpf" --package CABGA381 --textcfg "$buildout/Top.pnr"
+cat >"$buildout/filter.awk" <<EOF
 BEGIN { want = 0 }
 
 /Info: Logic utilisation/ { want = 1 }
@@ -75,9 +89,10 @@ BEGIN { want = 0 }
 }
 { if (want == 1) { print } }
 EOF
-		awk -f "$buildout/filter.awk" "$buildout/pnr.log"
+awk -f "$buildout/filter.awk" "$buildout/pnr.log"
 
-		phase "Pack"
-		ecppack "$buildout/Top.pnr" "$buildout/Top.bit"
-		;;
-esac
+##################
+# Pack bitstream
+##################
+phase "Pack"
+ecppack "$buildout/Top.pnr" "$buildout/Top.bit"
