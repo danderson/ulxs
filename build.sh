@@ -62,7 +62,9 @@ if [ "$action" = "shell" ]; then
 else
 	echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
 fi
-if ls -1 | grep '*.hex'; then
+has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
+if [ "$has_hex" != "0" ]; then
+	echo "COPY COPY COPY"
 	cp -f ${project}/*.hex "$buildout"
 fi
 (
