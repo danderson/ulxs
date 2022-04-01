@@ -1,7 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    davepkgs.url = "github:danderson/nixpkgs/openfpgaloader";
+    davepkgs.url = "github:danderson/nixpkgs/danderson/bluespec";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat = { # for shell.nix
       url = "github:edolstra/flake-compat";
@@ -16,33 +16,32 @@
           system = system;
           config = { allowUnfree = true; };
         };
-        dave = davepkgs.legacyPackages.${system};
-        python-nmigen = dave.python3.withPackages (ps: with ps; [
-          nmigen
-          nmigen-boards
-          nmigen-soc
-        ]);
+        dave = import davepkgs {
+          system = system;
+          config = { allowUnfree = true; };
+        };
       in
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            bluespec
+            dave.bluespec
             vscode
             dfu-util
             fujprog
             git
             go
-            goimports
+            gotools
             gtkwave
             imagemagick
             nextpnr
-            dave.openfpgaloader
+            openfpgaloader
             picocom
-            python-nmigen
+            python3
             redo-apenwarr
             symbiyosys
             trellis
             verilator
+            xdot
             yices
             yosys
             z3
