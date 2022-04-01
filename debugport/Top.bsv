@@ -1,5 +1,8 @@
 package Top;
 
+import Connectable::*;
+import GetPut::*;
+
 import PinSynchronizer::*;
 import Serial::*;
 
@@ -13,19 +16,13 @@ interface ITop;
 endinterface
 
 module mkTop (ITop);
-   // Synchronized input that's safe to read.
-   Reg#(bit) rx <- mkPinSync(1);
-
+   Reg#(bit) rx_bit <- mkPinSync(1);
    let receiver <- mkSerialReceiver(25_000_000, 115200);
-   rule pump_receiver;
-      receiver.rx(rx);
-   endrule
+   mkConnection(toGet(asIfc(rx_bit)), receiver.bit_in);
 
    Reg#(bit) tx_bit <- mkReg(1);
    let transmitter <- mkSerialTransmitter(25_000_000, 115200);
-   rule pump_transmitter;
-      tx_bit <= transmitter.tx();
-   endrule
+   mkConnection(transmitter.bit_out, toPut(asReg(tx_bit)));
 
    function Bit#(8) rot13(Bit#(8) v);
       UInt#(8) i = unpack(v);
@@ -39,13 +36,14 @@ module mkTop (ITop);
 
    Reg#(Bit#(8)) leds_val <- mkReg(0);
    rule update_leds;
-      leds_val <= receiver;
-      let char = rot13(receiver);
-      transmitter <= char;
+      let v <- receiver.byte_out.get();
+      leds_val <= v;
+      let char = rot13(v);
+      transmitter.byte_in.put(char);
    endrule
 
    method leds = leds_val._read;
-   method uart_rx = rx._write;
+   method uart_rx = rx_bit._write;
    method uart_tx = tx_bit._read;
 endmodule
 

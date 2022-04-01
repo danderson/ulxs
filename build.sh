@@ -62,13 +62,15 @@ if [ "$action" = "shell" ]; then
 else
 	echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
 fi
-cp ${project}/*.hex "$buildout"
+if ls -1 | grep '*.hex'; then
+	cp -f ${project}/*.hex "$buildout"
+fi
 (
 	cd "$buildout"
 	yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
 )
 
-if [ "$action" != "" ]; then
+if [ "$action" = "shell" ]; then
 	exit 0
 fi
 
@@ -96,3 +98,11 @@ awk -f "$buildout/filter.awk" "$buildout/pnr.log"
 ##################
 phase "Pack"
 ecppack "$buildout/Top.pnr" "$buildout/Top.bit"
+
+##################
+# Flash board
+##################
+if [ "$action" = "flash" ]; then
+	phase "Flash"
+	openFPGALoader -b ulx3s "$buildout/Top.bit"
+fi

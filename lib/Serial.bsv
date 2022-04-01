@@ -1,16 +1,16 @@
 package Serial;
 
 import Cntrs::*;
+import GetPut::*;
 import Strobe::*;
 import StmtFSM::*;
 
-interface ISerialReceiver;
-   (* always_enabled *)
-   method Action rx(bit v);
-   method Bit#(8) _read();
+interface SerialReceiver;
+   interface Put#(bit) bit_in;
+   interface Get#(Bit#(8)) byte_out;
 endinterface
 
-module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (ISerialReceiver);
+module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (SerialReceiver);
    // Strobes at 16x the desired baud rate, so we can find the start
    // of bit.
    let rx_sense <- mkStrobe(clk_freq, baud_rate*16);
@@ -29,11 +29,11 @@ module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (ISerialReceiver);
    // shift.
    Wire#(bit) rx_bit <- mkWire();
    Reg#(Bit#(8)) shift <- mkReg(0);
-   Wire#(Bit#(8)) out <- mkWire();
+   Wire#(Bit#(8)) finished_byte <- mkWire();
    let read_byte = seq
                       noAction; // discard start bit
                       repeat (8) shift <= {rx_bit, shift[7:1]};
-                      out <= shift; // discard stop bit, yield result.
+                      finished_byte <= shift; // discard stop bit, yield result.
                    endseq;
    let reader <- mkFSMWithPred(read_byte, middle_of_bit);
 
@@ -45,16 +45,22 @@ module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (ISerialReceiver);
 
    // Finally, the methods. One to push bits from the wire into the
    // UART, the other to read out bytes when they're available.
-   method rx = rx_bit._write;
-   method _read = out._read;
+   interface Get byte_out;
+      method ActionValue#(Bit#(8)) get;
+         return finished_byte;
+      endmethod
+   endinterface
+   interface Put bit_in;
+      method put = rx_bit._write;
+   endinterface
 endmodule
 
-interface ISerialTransmitter;
-   method Action _write(Bit#(8) b);
-   method bit tx();
+interface SerialTransmitter;
+   interface Put#(Bit#(8)) byte_in;
+   interface Get#(bit) bit_out;
 endinterface
 
-module mkSerialTransmitter #(Integer clk_freq, Real baud_rate) (ISerialTransmitter);
+module mkSerialTransmitter #(Integer clk_freq, Real baud_rate) (SerialTransmitter);
    let tx_timing <- mkStrobe(clk_freq, baud_rate);
 
    Reg#(Bit#(8)) shift <- mkReg(0);
@@ -69,11 +75,17 @@ module mkSerialTransmitter #(Integer clk_freq, Real baud_rate) (ISerialTransmitt
                     endseq;
    let writer <- mkFSMWithPred(write_byte, tx_timing);
 
-   method tx = tx_bit._read;
-   method Action _write(Bit#(8) b) if (writer.done());
-      shift <= b;
-      writer.start();
-   endmethod
+   interface Put byte_in;
+      method Action put(Bit#(8) b) if (writer.done());
+         shift <= b;
+         writer.start();
+      endmethod
+   endinterface
+   interface Get bit_out;
+      method ActionValue#(bit) get;
+         return tx_bit._read;
+      endmethod
+   endinterface
 endmodule
 
 endpackage
