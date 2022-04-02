@@ -36,11 +36,11 @@ TODO: everything else
 | Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1        |
 | Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1        |
 | Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1        |
-| Arith   | `addi rd,ra,#imm` | `rd = ra + imm`                    | 2        |
+| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2        |
 | Arith   | `inc rd,#imm`     | `rd = rd + imm`                    | 3        |
 | Memory  | `ld rd,[ra,rb]`   | `rd = mem[trunc16(ra + rb)]`       | 1        |
 | Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2        |
-| Memory  | `ldi rd,#imm`     | `rd = imm`                         | 3        |
+| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3        |
 | Memory  | `sr rd,[ra,rb]`   | `mem[trunc16(ra + rb)] = rd`       | 1        |
 | Memory  | `st rd,[ra,#imm]` | `mem[trunc16(ra + imm)] = rd`      | 2        |
 | Control | `jz rd,ra,#imm`   | `pc = ra ? pc : trunc16(rd + imm)` | 2        |
