@@ -71,7 +71,7 @@ TODO: everything else
    - `101`: shift left
    - `110`: shift right
 
-## 2-register immediate encoding
+### 2-register immediate encoding
 
 ```
 +----+--------+--------+------------------+--------+
@@ -87,7 +87,7 @@ TODO: everything else
    - `11`: add register+immediate
  - `Imm`: 6-bit immediate value
 
-## 1-register immediate encoding
+### 1-register immediate encoding
 
 ```
 +----+--------+--------+---------------------------+
@@ -102,7 +102,7 @@ TODO: everything else
    - `10`: increment immediate
    - `11`: reserved
 
-## Reserved
+### Reserved
 
 ```
 +----+---------------------------------------------+
