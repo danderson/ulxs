@@ -32,7 +32,7 @@ TODO: everything else
 | Arith   | `add rd,ra,rb`    | `rd = ra + rb`                   | 1        |
 | Arith   | `sub rd,ra,rb`    | `rd = ra - rb`                   | 1        |
 | Arith   | `and rd,ra,rb`    | `rd = ra & rb`                   | 1        |
-| Arith   | `or rd,ra,rb`     | `rd = ra | rb`                   | 1        |
+| Arith   | `or rd,ra,rb`     | `rd = ra \| rb`                  | 1        |
 | Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                   | 1        |
 | Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                  | 1        |
 | Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                  | 1        |
