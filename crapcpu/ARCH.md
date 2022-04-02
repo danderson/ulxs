@@ -17,13 +17,43 @@ my old CPU design classes. The highlights:
    both going to be crap.
  - No exceptions or interrupts.
 
-Instruction set:
- - `ld rd,rs,off`: `rd = mem[rs+off]`
- - `st rd,rs,off`: `mem[rs+off] = rd`
-
-TODO: does the instruction set even encode into 16 bits, lol
-
-TODO: everything else
+```
+                                                                              jz
+                                                                ┌──────────┐   │
+                                                                │  pc_src  │ ┌─▼┐   ┌───┐
+┌─────────────┐                                               ┌─▼┐         │ │  │◄──┤ 1 │
+│             │                    ┌────┐                     │  │◄──────┐ │ │  │   └───┘
+│             │◄───────────────────┤ PC │◄────────────────────┼──┤       │ └─┤  │
+│ Instruction │                    └────┘                     │  │◄─┐    │   │  │   ┌──┐
+│    Fetch    │                                               └──┘  │    │   │  │◄──┤=0│◄─┐
+│             │                     ┌──┐                            │    │   └──┘   └──┘  │
+│             ├────────────────────►│+2├────────────────────────────┘    │                │
+└──────┬──────┘                     └──┘                                 │                │
+       │                                          ┌──────────────────────┼──o─────────────┘
+       │                                          │    use_rb            │  │
+┌──────▼──────┐              Ra ┌────────────┐    │      │       func    │  │ data_in ┌──────────┐
+│             ├─────────────────┤            │    │     ┌▼─┐      │      │  └────────►│          │
+│             ├─►use_ra         │            ├────o────►│  │   ┌──▼────┐ │            │          │
+│             │              Rb │            │B         │  ├──►│       │ │   mem_en──►│  Memory  │
+│             ├────────────────►│            │          │  │   │       │ │            │   Unit   │
+│             ├─►use_rb         │            │    Imm──►│  │   └─┐     │ │   mem_wr──►│          │
+│ Instruction │              Rd │  Register  │          └──┘     │     │ │            │          │
+│   Decoder   ├────────────────►│    File    │                   │ ALU ├─o───o───────►│          ├─┐
+│             ├─►Imm            │            │  ┌───┐   ┌──┐     │     │     │   addr └──────────┘ │
+│             │           Rd_wr │            │  │ 0 ├──►│  │   ┌─┘     │     │                     │
+│             ├────────────────►│            │  └───┘   │  │   │       │     │                     │
+│             ├─►func           │            │A         │  ├──►│       │     │                     │
+│             │           Rd_in │            ├─────────►│  │   └───────┘     │                     │
+│             ├─►mem_en     ┌──►│            │          └▲─┘                 │                     │
+│             ├─►mem_wr     │   └────────────┘           │          ┌──┐     │                     │
+│             │             │                          use_ra       │  │◄────┘alu_out              │
+│             ├─►use_mem    └───────────────────────────────────────┤  │                           │
+│             ├─►jz                                                 │  │      mem_in               │
+└─────────────┘                                                     │  │◄──────────────────────────┘
+                                                                    └▲─┘
+                                                                     │
+                                                                  use_mem
+```
 
 ## Instructions
 
@@ -38,38 +68,33 @@ TODO: everything else
 | Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1        |
 | Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2        |
 | Arith   | `inc rd,#imm`     | `rd = rd + imm`                    | 3        |
-| Memory  | `ld rd,[ra,rb]`   | `rd = mem[trunc16(ra + rb)]`       | 1        |
 | Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2        |
 | Memory  | `ld rd,#imm`      | `rd = imm`                         | 3        |
-| Memory  | `sr rd,[ra,rb]`   | `mem[trunc16(ra + rb)] = rd`       | 1        |
-| Memory  | `st rd,[ra,#imm]` | `mem[trunc16(ra + imm)] = rd`      | 2        |
-| Control | `jz rd,ra,#imm`   | `pc = ra ? pc : trunc16(rd + imm)` | 2        |
-| Control | `j rd,#imm`       | `pc = trunc16(rd + imm)`           | 3        |
+| Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 2        |
+| Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 2        |
+| Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 3        |
 | Misc    | `mov rd,ra`       | same as `or rd,ra,ra`              | n/a      |
 | Misc    | `nop`             | same as `or r0,r0,r0`              | n/a      |
 
 ### 3-register encoding
 
 ```
-+----+--------+--------+---------+--------+--------+
-| 00 | Rd (3) | Op (2) | ALU (3) | Rb (3) | Ra (3) |
-+----+--------+--------+---------+--------+--------+
++----+--------+------------------+--------+--------+
+| 00 | Rd (3) |     ALU (5)      | Rb (3) | Ra (3) |
++----+--------+------------------+--------+--------+
 ```
 
  - `Ra`, `Rb`, `Rd`: register number, 0-7
  - `Op`: operation
    - `00`: ALU operation
-   - `01`: load 2-register
-   - `10`: store 2-register
-   - `11`: reserved
  - `ALU`: ALU operation
-   - `000`: add
-   - `001`: sub
-   - `010`: and
-   - `011`: or
-   - `100`: XOR
-   - `101`: shift left
-   - `110`: shift right
+   - `00000`: add
+   - `00001`: sub
+   - `00010`: and
+   - `00011`: or
+   - `00100`: XOR
+   - `00101`: shift left
+   - `00110`: shift right
 
 ### 2-register immediate encoding
 
