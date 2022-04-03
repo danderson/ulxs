@@ -264,35 +264,29 @@ module testMem (FSM);
 
    Reg#(UInt#(32)) c <- mkRegU();
 
-   function RStmt#(Bit#(0)) assert_resp(Get#(Word) mem, Word want);
-      return seq
-                action
-                   let got <- mem.get();
-                   dynamicAssert(got == want, "wrong value from imem");
-                   dynamicAssert(cycles == (c+1), "imem didn't respond in 1 cycle");
-                endaction
-             endseq;
+   function Action assert_resp(Get#(Word) mem, Word want);
+      return action
+                let got <- mem.get();
+                dynamicAssert(got == want, "wrong value from imem");
+                dynamicAssert(cycles == (c+1), "imem didn't respond in 1 cycle");
+             endaction;
    endfunction
 
-   function RStmt#(Bit#(0)) imem_send(Word addr);
-      return seq
-                action
-                   imem.request.put(addr);
-                   c <= cycles;
-                endaction
-             endseq;
+   function Action imem_send(Word addr);
+      return action
+                imem.request.put(addr);
+                c <= cycles;
+             endaction;
    endfunction
 
-   function RStmt#(Bit#(0)) dmem_send(Word addr, Maybe#(Word) data);
-      return seq
-                action
-                   dmem.request.put(Mem_Request{
-                      addr: addr,
-                      data: data
-                   });
-                   c <= cycles;
-                endaction
-             endseq;
+   function Action dmem_send(Word addr, Maybe#(Word) data);
+      return action
+                dmem.request.put(Mem_Request{
+                   addr: addr,
+                   data: data
+                });
+                c <= cycles;
+             endaction;
    endfunction
 
    let fsm <- mkFSM(seq
