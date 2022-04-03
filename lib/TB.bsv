@@ -1,6 +1,8 @@
 package TB;
 
 import Assert::*;
+import Connectable::*;
+import GetPut::*;
 import StmtFSM::*;
 
 import Strobe::*;
@@ -79,9 +81,7 @@ module testSerialReceiver (FSM);
    let timer <- mkStrobe(200, 7);
    let r <- mkSerialReceiver(200, 7);
    Reg#(bit) rx <- mkReg(1);
-   rule rx_pump;
-      r.rx(rx);
-   endrule
+   mkConnection(toGet(asReg(rx)), r.bit_in);
 
    let write_test = seq
                        rx <= 1;
@@ -105,7 +105,7 @@ module testSerialReceiver (FSM);
                  endseq
                  seq
                     action
-                       let b = r;
+                       let b <- r.byte_out.get();
                        let want = 8'b10110111;
                        dynamicAssert(b == want, "wrong byte received");
                     endaction
@@ -117,20 +117,18 @@ endmodule
 
 module testSerialTransmitter (FSM);
    let t <- mkSerialTransmitter(200, 7);
-   let b <- mkReg(1);
+   Reg#(bit) b <- mkReg(1);
    let r <- mkSerialReceiver(200, 7);
-
-   rule pump_tx;
-      b <= t.tx();
-   endrule
-   rule pump_rx;
-      r.rx(b);
-   endrule
+   mkConnection(t.bit_out, toPut(asReg(b)));
+   mkConnection(toGet(asReg(b)), r.bit_in);
 
    let want = 8'b10110011;
    let test = seq
-                 t <= want;
-                 dynamicAssert(r == want, "wrong byte received");
+                 t.byte_in.put(want);
+                 action
+                    let got <- r.byte_out.get();
+                    dynamicAssert(got == want, "wrong byte received");
+                 endaction
               endseq;
    let fsm <- mkFSM(test);
    return fsm;
