@@ -115,6 +115,10 @@ function runTest() {
 	# Generate simulation binary
 	##################
 	phase "Bluespec to simulation"
+	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
+	if [ "$has_hex" != "0" ]; then
+		cp -f ${project}/*.hex "$buildout"
+	fi
 	bsc -check-assert -u -sim -simdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
 	(
 		set -eu

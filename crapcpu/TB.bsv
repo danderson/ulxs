@@ -2,10 +2,14 @@ package TB;
 
 import Assert::*;
 import StmtFSM::*;
+import Cntrs::*;
+import GetPut::*;
+import ClientServer::*;
 
 import ALU::*;
 import Decode::*;
 import ISA::*;
+import Mem::*;
 
 module mkTB ();
    Reg#(UInt#(32)) cycles <- mkReg(0);
@@ -16,6 +20,7 @@ module mkTB ();
 
    let decoder <- testDecoder();
    let alu <- testALU();
+   let mem <- testMem();
 
    function RStmt#(Bit#(0)) run(String name, FSM test);
       return seq
@@ -28,6 +33,7 @@ module mkTB ();
    mkAutoFSM(seq
                 run("testDecoder", decoder);
                 run("testALU", alu);
+                run("testMem", mem);
              endseq);
 endmodule
 
@@ -244,6 +250,64 @@ module testALU (FSM);
       checkEq("r << r", alu_in(Shl, 1, 2, ?, True, True), alu_out(4));
       checkEq("r >> r", alu_in(Shr, 4, 2, ?, True, True), alu_out(1));
     endseq);
+   return fsm;
+endmodule
+
+module testMem (FSM);
+   let imem <- mkIMem("test_mem.hex");
+   let dmem <- mkDMem();
+
+   Count#(UInt#(32)) cycles <- mkCount(0);
+   rule count_cycles;
+      cycles.incr(1);
+   endrule
+
+   Reg#(UInt#(32)) c <- mkRegU();
+
+   function RStmt#(Bit#(0)) assert_resp(Get#(Word) mem, Word want);
+      return seq
+                action
+                   let got <- mem.get();
+                   dynamicAssert(got == want, "wrong value from imem");
+                   dynamicAssert(cycles == (c+1), "imem didn't respond in 1 cycle");
+                endaction
+             endseq;
+   endfunction
+
+   function RStmt#(Bit#(0)) imem_send(Word addr);
+      return seq
+                action
+                   imem.request.put(addr);
+                   c <= cycles;
+                endaction
+             endseq;
+   endfunction
+
+   function RStmt#(Bit#(0)) dmem_send(Word addr, Maybe#(Word) data);
+      return seq
+                action
+                   dmem.request.put(Mem_Request{
+                      addr: addr,
+                      data: data
+                   });
+                   c <= cycles;
+                endaction
+             endseq;
+   endfunction
+
+   let fsm <- mkFSM(seq
+      imem_send('h0000);
+      assert_resp(imem.response, 'h0123);
+      imem_send('h0001);
+      assert_resp(imem.response, 'h4567);
+
+      dmem_send('h0000, tagged Valid 'h0123);
+      dmem_send('h0001, tagged Valid 'h4567);
+      dmem_send('h0000, tagged Invalid);
+      assert_resp(dmem.response, 'h0123);
+      dmem_send('h0001, tagged Invalid);
+      assert_resp(dmem.response, 'h4567);
+   endseq);
    return fsm;
 endmodule
 
