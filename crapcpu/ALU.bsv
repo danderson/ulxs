@@ -1,63 +1,39 @@
-package ALU
+package ALU;
 
-export ALU;
-
+import Decode::*;
 import ISA::*;
 
-typedef enum {
-   Add,
-   Sub,
-   And,
-   Or,
-   Xor,
-   ShiftRight,
-   ShiftLeft,
-   Jump,
-   JumpIfZero,
-   JumpReg
-} ALUOp deriving (Eq, Bits);
+typedef struct {
+   ALU_Op op;
+   Word a;
+   Word b;
+   Word imm;
+   Bool ra_not_zero;
+   Bool rb_not_imm;
+} ALU_Input;
 
 typedef struct {
-   // Bits derived from the instruction being executed.
-   ALUOp op;
-   JumpOffset off;
+   Word o;
+} ALU_Output deriving (Eq);
 
-   // Selected by the control logic.
-   PC pc;
-   GPR a, b;
-} ALUInput;
 
-typedef struct {
-   GPR o;
-   Bool jump;
-} ALUOutput;
-
-function ALUOutput ALU(ALUInput f);
-  let ret = ALUOutput{
-     o: 0,
-     jump: False,
-  };
-  case f.op matches
-     Add: ret.o = f.a + f.b;
-     Sub: ret.o = f.a - f.b;
-     And: ret.o = f.a & f.b;
-     Or: ret.o = f.a | f.b;
-     Xor: ret.o = f.a ^ f.b;
-     ShiftRight: ret.o = f.a >> f.b;
-     ShiftLeft: ret.o = f.a << f.b;
-     Jump: begin
-              ret.o = f.pc + (f.off << 1);
-              ret.jump = True;
-           end
-     JumpIfZero: begin
-                    ret.o = f.pc + (f.off << 1);
-                    ret.jump = (f.a == 0);
-                 end
-     JumpReg: begin
-                 ret.o = f.a & 'hFFFE;
-                 ret.jump = True;
-              end
-  endcase
+function ALU_Output alu(ALU_Input f);
+   function ALU_Output out(Word o);
+      return ALU_Output{
+         o: o
+         };
+   endfunction
+   let a = f.ra_not_zero ? f.a : 0;
+   let b = f.rb_not_imm ? f.b : f.imm;
+   return case (f.op) matches
+             Add: out(a + b);
+             Sub: out(a - b);
+             And: out(a & b);
+             Or: out(a | b);
+             Xor: out(a ^ b);
+             Shl: out(a << b);
+             Shr: out(a >> b);
+          endcase;
 endfunction
 
 endpackage
