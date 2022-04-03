@@ -3,16 +3,6 @@ package Decode;
 import ISA::*;
 
 typedef enum {
-   Add,
-   Sub,
-   And,
-   Or,
-   Xor,
-   Shl,
-   Shr
-} ALU_Op deriving (Bits, Eq);
-
-typedef enum {
    Never,
    Always,
    IfZero
