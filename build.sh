@@ -28,7 +28,7 @@ synth() {
 	# Generate Verilog from BSV
 	##################
 	phase "Bluespec to Verilog"
-	bsc -check-assert -u -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:$bluelib" "$project/Top.bsv"
+	bsc -check-assert -u -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:${project}:${bluelib}" "$project/Top.bsv"
 
 	##################
 	# Synthesize Verilog
@@ -115,7 +115,7 @@ function runTest() {
 	# Generate simulation binary
 	##################
 	phase "Bluespec to simulation"
-	bsc -check-assert -u -sim -simdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:$bluelib" "$project/TB.bsv"
+	bsc -check-assert -u -sim -simdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
 	(
 		set -eu
 		cd "$buildout"

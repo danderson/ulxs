@@ -57,23 +57,23 @@ my old CPU design classes. The highlights:
 
 ## Instructions
 
-| Family  | Mnemonic          | Effect                             |
-| ------- | ----------------- | ---------------------------------- |
-| Arith   | `add rd,ra,rb`    | `rd = ra + rb`                     | 1
-| Arith   | `sub rd,ra,rb`    | `rd = ra - rb`                     | 1
-| Arith   | `and rd,ra,rb`    | `rd = ra & rb`                     | 1
-| Arith   | `or rd,ra,rb`     | `rd = ra \| rb`                    | 1
-| Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1
-| Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1
-| Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1
-| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2
-| Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2
-| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3
-| Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 4
-| Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 4
-| Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 4
-| Misc    | `mov rd,ra`       | same as `or rd,ra,ra`              |
-| Misc    | `nop`             | same as `or r0,r0,r0`              |
+| Family  | Mnemonic          | Effect                             | Encoding |
+| ------- | ----------------- | ---------------------------------- | -------- |
+| Arith   | `add rd,ra,rb`    | `rd = ra + rb`                     | 1        |
+| Arith   | `sub rd,ra,rb`    | `rd = ra - rb`                     | 1        |
+| Arith   | `and rd,ra,rb`    | `rd = ra & rb`                     | 1        |
+| Arith   | `or rd,ra,rb`     | `rd = ra \| rb`                    | 1        |
+| Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1        |
+| Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1        |
+| Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1        |
+| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2        |
+| Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2        |
+| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3        |
+| Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 4        |
+| Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 4        |
+| Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 4        |
+| Misc    | `mov rd,ra`       | same as `or rd,ra,ra`              | n/a      |
+| Misc    | `nop`             | same as `or r0,r0,r0`              | n/a      |
 
 ### Encodings
 

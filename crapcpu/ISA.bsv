@@ -1,9 +1,10 @@
-package ISA
+package ISA;
 
-typedef 16 W;
+typedef Bit#(16) PC;
+typedef Bit#(16) GPR;
+typedef Bit#(3) RegNum;
 
-typedef Bit#(W) PC;
-typedef Bit#(W) GPR;
-typedef Bit#(4) JumpOffset;
+typedef Bit#(16) Word;
+typedef Bit#(16) Instruction;
 
 endpackage
