@@ -57,80 +57,55 @@ my old CPU design classes. The highlights:
 
 ## Instructions
 
-| Family  | Mnemonic          | Effect                             | Encoding |
-| ------- | ----------------- | ---------------------------------- | -------- |
-| Arith   | `add rd,ra,rb`    | `rd = ra + rb`                     | 1        |
-| Arith   | `sub rd,ra,rb`    | `rd = ra - rb`                     | 1        |
-| Arith   | `and rd,ra,rb`    | `rd = ra & rb`                     | 1        |
-| Arith   | `or rd,ra,rb`     | `rd = ra \| rb`                    | 1        |
-| Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1        |
-| Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1        |
-| Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1        |
-| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2        |
-| Arith   | `inc rd,#imm`     | `rd = rd + imm`                    | 3        |
-| Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2        |
-| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3        |
-| Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 2        |
-| Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 2        |
-| Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 3        |
-| Misc    | `mov rd,ra`       | same as `or rd,ra,ra`              | n/a      |
-| Misc    | `nop`             | same as `or r0,r0,r0`              | n/a      |
+| Family  | Mnemonic          | Effect                             |
+| ------- | ----------------- | ---------------------------------- |
+| Arith   | `add rd,ra,rb`    | `rd = ra + rb`                     | 1
+| Arith   | `sub rd,ra,rb`    | `rd = ra - rb`                     | 1
+| Arith   | `and rd,ra,rb`    | `rd = ra & rb`                     | 1
+| Arith   | `or rd,ra,rb`     | `rd = ra \| rb`                    | 1
+| Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1
+| Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1
+| Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1
+| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2
+| Arith   | `inc rd,#imm`     | `rd = rd + imm`                    | 2
+| Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2
+| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3
+| Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 4
+| Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 4
+| Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 4
+| Misc    | `mov rd,ra`       | same as `or rd,ra,ra`              |
+| Misc    | `nop`             | same as `or r0,r0,r0`              |
 
-### 3-register encoding
+### Encodings
 
-```
-+----+--------+------------------+--------+--------+
-| 00 | Rd (3) |     ALU (5)      | Rb (3) | Ra (3) |
-+----+--------+------------------+--------+--------+
-```
-
- - `Ra`, `Rb`, `Rd`: register number, 0-7
- - `Op`: operation
-   - `00`: ALU operation
- - `ALU`: ALU operation
-   - `00000`: add
-   - `00001`: sub
-   - `00010`: and
-   - `00011`: or
-   - `00100`: XOR
-   - `00101`: shift left
-   - `00110`: shift right
-
-### 2-register immediate encoding
+Encoding 1 is for `register<op>register -> register` ALU ops
 
 ```
-+----+--------+--------+------------------+--------+
-| 10 | Rd (3) | Op (2) |     Imm (6)      | Ra (3) |
-+----+--------+--------+------------------+--------+
++---------------+-----------------------+-----------------------+---------------+-----------------------+-----------------------+
+|      00       |         Ra(3)         |         Rb(3)         |      XX       |         Op(3)         |         Rd(3)         |
++---------------+-----------------------+-----------------------+---------------+-----------------------+-----------------------+
 ```
 
- - `Ra`, `Rd`: register number, 0-7
- - `Op`: operation
-   - `00`: load register+immediate
-   - `01`: store register+immediate
-   - `10`: jump if zero
-   - `11`: add register+immediate
- - `Imm`: 6-bit immediate value
-
-### 1-register immediate encoding
+Encoding 2 is for `op(register+immediate) -> register` ALU ops and memory reads
 
 ```
-+----+--------+--------+---------------------------+
-| 11 | Rd (3) | Op (2) |         Imm (10)          |
-+----+--------+--------+---------------------------+
++---------------+-----------------------+-----------------------------------------------+---------------+-----------------------+
+|      01       |         Ra(3)         |                    Imm(6)                     |     Op(2)     |         Rd(3)         |
++---------------+-----------------------+-----------------------------------------------+---------------+-----------------------+
 ```
 
- - `Rd`: register number, 0-7
- - `Op`: operation
-   - `00`: jump register+immediate
-   - `01`: load immediate
-   - `10`: increment immediate
-   - `11`: reserved
-
-### Reserved
+Encoding 3 is for `immediate -> register` initializations.
 
 ```
-+----+---------------------------------------------+
-| 01 |                  Reserved                   |
-+----+---------------------------------------------+
++---------------+-------------------------------------------------------------------------------+-------+-----------------------+
+|      10       |                                    Imm(10)                                    | Op(1) |         Rd(3)         |
++---------------+-------------------------------------------------------------------------------+-------+-----------------------+
+```
+
+Encoding 4 is for memory stores and control flow operations.
+
+```
++---------------+-----------------------+-----------------------+---------------+-----------------------------------------------+
+|      11       |         Ra(3)         |         Rb(3)         |     Op(2)     |                    Imm(6)                     |
++---------------+-----------------------+-----------------------+---------------+-----------------------------------------------+
 ```
