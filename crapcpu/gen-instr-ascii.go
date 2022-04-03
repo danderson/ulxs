@@ -9,8 +9,8 @@ import (
 
 var instructions = strings.TrimSpace(`
 00 Ra(3) Rb(3) XX Op(3) Rd(3)
-01 Ra(3) Imm(6) Op(2) Rd(3)
-10 Imm(10) Op(1) Rd(3)
+01 Ra(3) Imm(7) Op(1) Rd(3)
+10 Imm(11) Rd(3)
 11 Ra(3) Rb(3) Op(2) Imm(6)
 `)
 
