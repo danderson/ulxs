@@ -154,16 +154,18 @@ func asm4(w io.Writer, i Instr) error {
 	switch i.Name {
 	case "st":
 		op = 0
+	case "j":
+		op = 3
 	case "jz":
 		op = 1
-	case "j":
-		op = 2
 	default:
 		panic("unknown insn")
 	}
-	v := uint16(3<<14) | reg(i.Regs[0], 11) | (op << 6) | imm(i.Imm, 6, 0)
-	if i.Name != "j" {
-		v |= reg(i.Regs[1], 8)
+	v := uint16(3<<14) | (op << 6) | imm(i.Imm, 6, 0)
+	if i.Name == "j" {
+		v |= reg(i.Regs[0], 11)
+	} else {
+		v |= reg(i.Regs[1], 11) | reg(i.Regs[0], 8)
 	}
 	return write16(w, v)
 }

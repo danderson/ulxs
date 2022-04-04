@@ -6,7 +6,7 @@ typedef enum {
    Never,
    Always,
    IfZero
-} Jump_Mode deriving (Bits, Eq);
+} Jump_Mode deriving (Bits, Eq, FShow);
 
 typedef struct{
    // Extracted instruction bits
@@ -22,7 +22,7 @@ typedef struct{
    Bool mem_write;
    Bool wb_en;
    Jump_Mode jmp_mode;
-} Decoded deriving (Bits, Eq);
+} Decoded deriving (Bits, Eq, FShow);
 
 function Decoded decode(Instruction instr);
    let ra = instr[13:11];

@@ -15,6 +15,6 @@ typedef enum {
    Xor,
    Shl,
    Shr
-} ALU_Op deriving (Bits, Eq);
+} ALU_Op deriving (Bits, Eq, FShow);
 
 endpackage

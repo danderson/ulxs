@@ -5,6 +5,7 @@ import StmtFSM::*;
 import Cntrs::*;
 import GetPut::*;
 import ClientServer::*;
+import FIFOF::*;
 
 import ALU::*;
 import Decode::*;
@@ -16,12 +17,13 @@ module mkTB ();
    Reg#(UInt#(32)) cycles <- mkReg(0);
    rule timeout;
       cycles <= cycles+1;
-      dynamicAssert(cycles <= 100000, "test timeout");
+      dynamicAssert(cycles <= 100, "test timeout");
    endrule
 
    let decoder <- testDecoder();
    let alu <- testALU();
    let mem <- testMem();
+   let cpu <- testCPU();
 
    function RStmt#(Bit#(0)) run(String name, FSM test);
       return seq
@@ -32,9 +34,10 @@ module mkTB ();
              endseq;
    endfunction
    mkAutoFSM(seq
-                run("testDecoder", decoder);
-                run("testALU", alu);
-                run("testMem", mem);
+                //run("testDecoder", decoder);
+                //run("testALU", alu);
+                //run("testMem", mem);
+                run("testCPU", cpu);
              endseq);
 endmodule
 
@@ -44,8 +47,8 @@ module testDecoder (FSM);
                 $display("  ", name);
                 action
                    let got = decode(in);
-                   // $display("%x", got);
-                   // $display("%x", want);
+                   // $display(fshow(got));
+                   // $display(fshow(want));
                    dynamicAssert(got == want, strConcat("wrong instruction decode: ", name));
                 endaction
              endseq;
@@ -194,19 +197,6 @@ module testDecoder (FSM);
          wb_en: False,
          jmp_mode: Never
          });
-      checkEq("jz r4,r6,#42", 'b11_110_100_01_101010, Decoded{
-         ra: 6,
-         rb: 4,
-         rd: 0,
-         imm: 42,
-         func: Add,
-         ra_not_zero: True,
-         rb_not_imm: False,
-         mem_en: False,
-         mem_write: False,
-         wb_en: False,
-         jmp_mode: IfZero
-         });
       checkEq("j r4,#42", 'b11_110_000_11_101010, Decoded{
          ra: 6,
          rb: 0,
@@ -219,6 +209,19 @@ module testDecoder (FSM);
          mem_write: False,
          wb_en: False,
          jmp_mode: Always
+         });
+      checkEq("jz r4,r6,#42", 'b11_110_100_01_101010, Decoded{
+         ra: 6,
+         rb: 4,
+         rd: 0,
+         imm: 42,
+         func: Add,
+         ra_not_zero: True,
+         rb_not_imm: False,
+         mem_en: False,
+         mem_write: False,
+         wb_en: False,
+         jmp_mode: IfZero
          });
       endseq);
    return fsm;
@@ -326,13 +329,17 @@ module testMem (FSM);
       imem_send('h0000);
       assert_resp(imem.response, 'h0123);
       imem_send('h0001);
+      assert_resp(imem.response, 'h0123);
+      imem_send('h0002);
       assert_resp(imem.response, 'h4567);
 
       dmem_send('h0000, tagged Valid 'h0123);
-      dmem_send('h0001, tagged Valid 'h4567);
+      dmem_send('h0002, tagged Valid 'h4567);
       dmem_send('h0000, tagged Invalid);
       assert_resp(dmem.response, 'h0123);
       dmem_send('h0001, tagged Invalid);
+      assert_resp(dmem.response, 'h0123);
+      dmem_send('h0002, tagged Invalid);
       assert_resp(dmem.response, 'h4567);
 
       iomem_send('hFFFF, tagged Valid 'h0123);
@@ -342,6 +349,20 @@ module testMem (FSM);
       serial <= 'h42;
       iomem_send('hFFFF, tagged Invalid);
       assert_resp(iomem.response, 'h0042);
+   endseq);
+   return fsm;
+endmodule
+
+module testCPU (FSM);
+   let imem <- mkIMem("cpu_test_mem.hex");
+   let dmem <- mkDMem();
+   Reg#(Bit#(8)) serial_in <- mkReg(32);
+   Reg#(Bit#(8)) serial_out <- mkRegU();
+   let iomem <- mkIOOverlay(dmem, toGet(asReg(serial_in)), toPut(asReg(serial_out)));
+   let cpu <- mkCPU(iomem, imem);
+
+   let fsm <- mkFSM(seq
+      await (serial_out == 42);
    endseq);
    return fsm;
 endmodule
