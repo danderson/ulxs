@@ -10,6 +10,7 @@ import ALU::*;
 import Decode::*;
 import ISA::*;
 import Mem::*;
+import CPU::*;
 
 module mkTB ();
    Reg#(UInt#(32)) cycles <- mkReg(0);
@@ -60,6 +61,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("sub r4,r6,r7", 'b00_110_111_00_001_100, Decoded{
@@ -72,6 +74,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("and r4,r6,r7", 'b00_110_111_00_010_100, Decoded{
@@ -84,6 +87,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("or r4,r6,r7", 'b00_110_111_00_011_100, Decoded{
@@ -96,6 +100,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("xor r4,r6,r7", 'b00_110_111_00_100_100, Decoded{
@@ -108,6 +113,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("shl r4,r6,r7", 'b00_110_111_00_101_100, Decoded{
@@ -120,6 +126,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("shr r4,r6,r7", 'b00_110_111_00_110_100, Decoded{
@@ -132,6 +139,7 @@ module testDecoder (FSM);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("add r4,r6,#42", 'b01_110_0101010_0_100, Decoded{
@@ -144,6 +152,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("ld r4,[r6,#42]", 'b01_110_0101010_1_100, Decoded{
@@ -156,6 +165,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: True,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("ld r4,#420", 'b10_00110100100_100, Decoded{
@@ -168,6 +178,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          });
       checkEq("st r4,[r6,#42]", 'b11_110_100_00_101010, Decoded{
@@ -180,6 +191,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: True,
          mem_write: True,
+         wb_en: False,
          jmp_mode: Never
          });
       checkEq("jz r4,r6,#42", 'b11_110_100_01_101010, Decoded{
@@ -192,6 +204,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: False,
          mem_write: False,
+         wb_en: False,
          jmp_mode: IfZero
          });
       checkEq("j r4,#42", 'b11_110_000_11_101010, Decoded{
@@ -204,6 +217,7 @@ module testDecoder (FSM);
          rb_not_imm: False,
          mem_en: False,
          mem_write: False,
+         wb_en: False,
          jmp_mode: Always
          });
       endseq);

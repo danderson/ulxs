@@ -20,6 +20,7 @@ typedef struct{
    Bool rb_not_imm;
    Bool mem_en;
    Bool mem_write;
+   Bool wb_en;
    Jump_Mode jmp_mode;
 } Decoded deriving (Bits, Eq);
 
@@ -38,6 +39,7 @@ function Decoded decode(Instruction instr);
          rb_not_imm: True,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          };
       'b01: return Decoded {
@@ -50,6 +52,7 @@ function Decoded decode(Instruction instr);
          rb_not_imm: False,
          mem_en: instr[3] == 1,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          };
       'b10: return Decoded {
@@ -62,6 +65,7 @@ function Decoded decode(Instruction instr);
          rb_not_imm: False,
          mem_en: False,
          mem_write: False,
+         wb_en: True,
          jmp_mode: Never
          };
       'b11: return Decoded{
@@ -74,6 +78,7 @@ function Decoded decode(Instruction instr);
          rb_not_imm: False,
          mem_en: instr[6] == 0,
          mem_write: instr[6] == 0,
+         wb_en: False,
          jmp_mode: instr[6] == 0 ? Never : (instr[7] == 1 ? Always : IfZero)
          };
    endcase
