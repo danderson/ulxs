@@ -66,9 +66,9 @@ my old CPU design classes. The highlights:
 | Arith   | `xor rd,ra,rb`    | `rd = ra ^ rb`                     | 1        |
 | Arith   | `shl rd,ra,rb`    | `rd = ra << rb`                    | 1        |
 | Arith   | `shr rd,ra,rb`    | `rd = ra >> rb`                    | 1        |
-| Arith   | `add rd,ra,#imm`  | `rd = ra + imm`                    | 2        |
+| Arith   | `addi rd,ra,#imm` | `rd = ra + imm`                    | 2        |
 | Memory  | `ld rd,[ra,#imm]` | `rd = mem[trunc16(ra + imm)]`      | 2        |
-| Memory  | `ld rd,#imm`      | `rd = imm`                         | 3        |
+| Memory  | `ldi rd,#imm`     | `rd = imm`                         | 3        |
 | Memory  | `st rb,[ra,#imm]` | `mem[trunc16(ra + imm)] = rb`      | 4        |
 | Control | `jz rb,ra,#imm`   | `pc = rb ? pc : trunc16(ra + imm)` | 4        |
 | Control | `j ra,#imm`       | `pc = trunc16(ra + imm)`           | 4        |
