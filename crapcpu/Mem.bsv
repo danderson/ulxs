@@ -38,6 +38,36 @@ module mkDMem (Server#(Mem_Request, Word));
    endinterface
 endmodule
 
+module mkIOOverlay #(Server#(Mem_Request, Word) dmem, Get#(Bit#(8)) sr, Put#(Bit#(8)) st) (Server#(Mem_Request, Word));
+   Reg#(Bool) io_wait <- mkReg(False); // Next get() must return read from SerialReceiver
+
+   interface Get response;
+      method ActionValue#(Word) get();
+         if (io_wait) begin
+            let v <- sr.get();
+            return zeroExtend(v);
+         end
+         else begin
+            let v <- dmem.response.get();
+            return v;
+         end
+      endmethod
+   endinterface
+
+   interface Put request;
+      method Action put(Mem_Request req);
+         if (req.addr == 'hFFFF) begin
+            if (isValid(req.data))
+               st.put(truncate(fromMaybe(0, req.data)));
+            else
+               io_wait <= True;
+         end
+         else
+            dmem.request.put(req);
+      endmethod
+   endinterface
+endmodule
+
 module mkIMem #(String hex) (Server#(Word, Word));
    let cfg = BRAM_Configure{
       memorySize: 2048,

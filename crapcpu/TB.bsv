@@ -256,6 +256,8 @@ endmodule
 module testMem (FSM);
    let imem <- mkIMem("test_mem.hex");
    let dmem <- mkDMem();
+   Reg#(Bit#(8)) serial <- mkRegU(); // fake serial port
+   let iomem <- mkIOOverlay(dmem, toGet(asReg(serial)), toPut(asReg(serial)));
 
    Count#(UInt#(32)) cycles <- mkCount(0);
    rule count_cycles;
@@ -269,6 +271,13 @@ module testMem (FSM);
                 let got <- mem.get();
                 dynamicAssert(got == want, "wrong value from imem");
                 dynamicAssert(cycles == (c+1), "imem didn't respond in 1 cycle");
+             endaction;
+   endfunction
+
+   function Action assert_serial(Bit#(8) want);
+      return action
+                dynamicAssert(serial == want, "wrong value at serial port");
+                dynamicAssert(cycles == (c+1), "iomem didn't respond in 1 cycle");
              endaction;
    endfunction
 
@@ -289,6 +298,16 @@ module testMem (FSM);
              endaction;
    endfunction
 
+   function Action iomem_send(Word addr, Maybe#(Word) data);
+      return action
+                iomem.request.put(Mem_Request{
+                   addr: addr,
+                   data: data
+                });
+                c <= cycles;
+             endaction;
+   endfunction
+
    let fsm <- mkFSM(seq
       imem_send('h0000);
       assert_resp(imem.response, 'h0123);
@@ -301,6 +320,14 @@ module testMem (FSM);
       assert_resp(dmem.response, 'h0123);
       dmem_send('h0001, tagged Invalid);
       assert_resp(dmem.response, 'h4567);
+
+      iomem_send('hFFFF, tagged Valid 'h0123);
+      assert_serial('h23);
+      iomem_send('hFFFF, tagged Invalid);
+      assert_resp(iomem.response, 'h0023);
+      serial <= 'h42;
+      iomem_send('hFFFF, tagged Invalid);
+      assert_resp(iomem.response, 'h0042);
    endseq);
    return fsm;
 endmodule
