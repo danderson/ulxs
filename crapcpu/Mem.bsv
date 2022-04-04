@@ -57,10 +57,10 @@ module mkIOOverlay #(Server#(Mem_Request, Word) dmem, Get#(Bit#(8)) sr, Put#(Bit
    interface Put request;
       method Action put(Mem_Request req);
          if (req.addr == 'hFFFF) begin
-            if (isValid(req.data))
-               st.put(truncate(fromMaybe(0, req.data)));
-            else
-               io_wait <= True;
+            case (req.data) matches
+               tagged Invalid: io_wait <= True;
+               tagged Valid .v: st.put(truncate(v));
+            endcase
          end
          else
             dmem.request.put(req);
