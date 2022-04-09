@@ -10,18 +10,18 @@ import ISA::*;
 import Mem::*;
 
 module mkTB();
-   let cycles <- mkTestCycleCounter(1000);
+   let cycles <- mkTestCycleCounter(100);
 
    let imem <- mkIMem("cpu_test_mem.hex");
    let dmem <- mkDMem();
-   FIFO#(Bit#(8)) serial_in <- mkFIFO();
-   FIFO#(Bit#(8)) serial_out <- mkFIFO();
-   let iomem <- mkIOOverlay(dmem, toGet(serial_in), toPut(serial_out));
+   FIFO#(Bit#(8)) into_cpu <- mkFIFO();
+   FIFO#(Bit#(8)) from_cpu <- mkFIFO();
+   let iomem <- mkIOOverlay(dmem, toGet(into_cpu), toPut(from_cpu));
    let cpu <- mkCPU(iomem, imem);
 
    mkTest("CPU", seq
-      serial_in.enq(32);
-      await (serial_out.first() == 42);
+      into_cpu.enq(32);
+      await (from_cpu.first() == 42);
    endseq);
 endmodule
 
