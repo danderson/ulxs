@@ -17,17 +17,6 @@ func main() {
 		fatal("parsing %q: %v", os.Args[1], err)
 	}
 
-	for _, instr := range instrs {
-		fmt.Print(instr.Name, " ")
-		for _, reg := range instr.Regs {
-			fmt.Print(reg, " ")
-		}
-		if instr.HasImm {
-			fmt.Print("#", instr.Imm)
-		}
-		fmt.Print("\n")
-	}
-
 	if err := assemble(os.Args[2], instrs); err != nil {
 		fatal("assembling %q: %v", os.Args[1], err)
 	}

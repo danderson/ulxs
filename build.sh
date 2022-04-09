@@ -12,6 +12,7 @@ libpath="lib:$bluelib"
 buildout="out/${project}"
 
 function prepare_hex() {
+	outdir="$1"
 	has_asm=$(ls -1 ${project} | grep '.asm' | wc -l)
 	if [ "$has_asm" != "0" ]; then
 		for f in ${project}/*.asm; do
@@ -20,7 +21,7 @@ function prepare_hex() {
 	fi
 	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
 	if [ "$has_hex" != "0" ]; then
-		cp -f ${project}/*.hex "$buildout"
+		cp -f ${project}/*.hex "$outdir"
 	fi
 
 }
@@ -77,7 +78,7 @@ EOF
 	else
 		echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
 	fi
-	prepare_hex
+	prepare_hex "$buildout"
 	(
 		cd "$buildout"
 		yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
@@ -122,24 +123,30 @@ EOF
 }
 
 function runTest() {
-	##################
-	# Generate simulation binary
-	##################
-	phase "Bluespec to simulation"
-	prepare_hex
-	bsc -check-assert -u -keep-fires -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
-	bsc -check-assert -u -sim -simdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
+	infile="$1"
+
+	testout="$buildout/test/${infile%%_*}"
+	mkdir -p "$testout"
+	prepare_hex "$testout"
+	bsc -check-assert -u -sim -simdir "$testout" -bdir "$testout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/$infile"
 	(
 		set -eu
-		cd "$buildout"
+		cd "$testout"
 		bsc -sim -e mkTB -o TB
 		echo
 		./TB
-	)
+	) || exit 1
 }
 
 if [ "$action" = "test" ]; then
-	runTest
+	specifictest="${3:-}"
+	if [ "$specifictest" == "" ]; then
+		find "$project" -name "*_Test.bsv" | while read testfile; do
+			runTest "${testfile##*/}"
+		done
+	else
+		runTest "${specifictest}_Test.bsv"
+	fi
 else
 	synth
 fi
