@@ -61,10 +61,7 @@ module mkIOOverlay #(Server#(Mem_Request, Word) dmem, Get#(Bit#(8)) sr, Put#(Bit
       method Action put(Mem_Request req);
          if (req.addr == 'hFFFF) begin
             case (req.data) matches
-               tagged Invalid: begin
-                  $display("I/O read start");
-                  io_wait <= True;
-               end
+               tagged Invalid: io_wait <= True;
                tagged Valid .v: st.put(truncate(v));
             endcase
          end
