@@ -16,7 +16,8 @@ function prepare_hex() {
 	has_asm=$(ls -1 ${project} | grep '.asm' | wc -l)
 	if [ "$has_asm" != "0" ]; then
 		for f in ${project}/*.asm; do
-			go run ${project}/asm.go $f out/${f%.asm}.hex
+			out="${f##*/}"
+			go run ${project}/asm.go $f "$outdir/${out%.asm}.hex"
 		done
 	fi
 	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
