@@ -11,6 +11,20 @@ bluev="$blueroot/Verilog"
 libpath="lib:$bluelib"
 buildout="out/${project}"
 
+function prepare_hex() {
+	has_asm=$(ls -1 ${project} | grep '.asm' | wc -l)
+	if [ "$has_asm" != "0" ]; then
+		for f in ${project}/*.asm; do
+			go run ${project}/asm.go $f out/${f%.asm}.hex
+		done
+	fi
+	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
+	if [ "$has_hex" != "0" ]; then
+		cp -f ${project}/*.hex "$buildout"
+	fi
+
+}
+
 function phase() {
 	echo
 	echo "****************************************"
@@ -63,10 +77,7 @@ EOF
 	else
 		echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
 	fi
-	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
-	if [ "$has_hex" != "0" ]; then
-		cp -f ${project}/*.hex "$buildout"
-	fi
+	prepare_hex
 	(
 		cd "$buildout"
 		yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
@@ -115,10 +126,8 @@ function runTest() {
 	# Generate simulation binary
 	##################
 	phase "Bluespec to simulation"
-	has_hex=$(ls -1 ${project} | grep '.hex' | wc -l)
-	if [ "$has_hex" != "0" ]; then
-		cp -f ${project}/*.hex "$buildout"
-	fi
+	prepare_hex
+	bsc -check-assert -u -keep-fires -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
 	bsc -check-assert -u -sim -simdir "$buildout" -bdir "$buildout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/TB.bsv"
 	(
 		set -eu

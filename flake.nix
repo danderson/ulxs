@@ -3,10 +3,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     davepkgs.url = "github:danderson/nixpkgs/danderson/bluespec";
     flake-utils.url = "github:numtide/flake-utils";
-    flake-compat = { # for shell.nix
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
   };
 
   outputs = { nixpkgs, davepkgs, flake-utils, ... }:
@@ -29,7 +25,7 @@
             dfu-util
             fujprog
             git
-            go
+            go_1_18
             gotools
             gtkwave
             imagemagick

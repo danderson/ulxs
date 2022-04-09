@@ -5,7 +5,7 @@ import StmtFSM::*;
 import Cntrs::*;
 import GetPut::*;
 import ClientServer::*;
-import FIFOF::*;
+import FIFO::*;
 
 import ALU::*;
 import Decode::*;
@@ -20,10 +20,10 @@ module mkTB ();
       dynamicAssert(cycles <= 100, "test timeout");
    endrule
 
-   let decoder <- testDecoder();
-   let alu <- testALU();
+   //let decoder <- testDecoder();
+   //let alu <- testALU();
    let mem <- testMem();
-   let cpu <- testCPU();
+   //let cpu <- testCPU();
 
    function RStmt#(Bit#(0)) run(String name, FSM test);
       return seq
@@ -34,10 +34,10 @@ module mkTB ();
              endseq;
    endfunction
    mkAutoFSM(seq
-                //run("testDecoder", decoder);
-                //run("testALU", alu);
-                //run("testMem", mem);
-                run("testCPU", cpu);
+                // run("testDecoder", decoder);
+                // run("testALU", alu);
+                run("testMem", mem);
+                // run("testCPU", cpu);
              endseq);
 endmodule
 
@@ -273,8 +273,9 @@ endmodule
 module testMem (FSM);
    let imem <- mkIMem("test_mem.hex");
    let dmem <- mkDMem();
-   Reg#(Bit#(8)) serial <- mkRegU(); // fake serial port
-   let iomem <- mkIOOverlay(dmem, toGet(asReg(serial)), toPut(asReg(serial)));
+   FIFO#(Bit#(8)) sr <- mkFIFO();
+   FIFO#(Bit#(8)) st <- mkFIFO();
+   let iomem <- mkIOOverlay(dmem, toGet(sr), toPut(st));
 
    Count#(UInt#(32)) cycles <- mkCount(0);
    rule count_cycles;
@@ -293,8 +294,9 @@ module testMem (FSM);
 
    function Action assert_serial(Bit#(8) want);
       return action
-                dynamicAssert(serial == want, "wrong value at serial port");
+                dynamicAssert(st.first == want, "wrong value at serial port");
                 dynamicAssert(cycles == (c+1), "iomem didn't respond in 1 cycle");
+                st.deq();
              endaction;
    endfunction
 
@@ -344,11 +346,12 @@ module testMem (FSM);
 
       iomem_send('hFFFF, tagged Valid 'h0123);
       assert_serial('h23);
+      st.enq('h45);
       iomem_send('hFFFF, tagged Invalid);
-      assert_resp(iomem.response, 'h0023);
-      serial <= 'h42;
+      assert_resp(iomem.response, 'h0045);
+      st.enq('h46);
       iomem_send('hFFFF, tagged Invalid);
-      assert_resp(iomem.response, 'h0042);
+      assert_resp(iomem.response, 'h0046);
    endseq);
    return fsm;
 endmodule
@@ -356,12 +359,14 @@ endmodule
 module testCPU (FSM);
    let imem <- mkIMem("cpu_test_mem.hex");
    let dmem <- mkDMem();
-   Reg#(Bit#(8)) serial_in <- mkReg(32);
+   //Reg#(Bit#(8)) serial_in <- mkReg(32);
+   FIFO#(Bit#(8)) serial_in <- mkFIFO();
    Reg#(Bit#(8)) serial_out <- mkRegU();
-   let iomem <- mkIOOverlay(dmem, toGet(asReg(serial_in)), toPut(asReg(serial_out)));
+   let iomem <- mkIOOverlay(dmem, toGet(serial_in), toPut(asReg(serial_out)));
    let cpu <- mkCPU(iomem, imem);
 
    let fsm <- mkFSM(seq
+      serial_in.enq(32);
       await (serial_out == 42);
    endseq);
    return fsm;
