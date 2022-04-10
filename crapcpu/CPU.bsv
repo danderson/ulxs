@@ -37,7 +37,6 @@ module mkCPU #(Server#(Mem_Request, Word) dmem, Server#(Word, Word) imem) ();
          rb_not_imm: dec.rb_not_imm
       };
       let alu_out = alu(alu_in);
-      $display("PC=%x I=%x O=%x ", pc, insn, alu_out.o, fshow(dec));
 
       if (dec.mem_en) begin
          dmem.request.put(Mem_Request{
@@ -50,7 +49,6 @@ module mkCPU #(Server#(Mem_Request, Word) dmem, Server#(Word, Word) imem) ();
             imem.request.put(nextpc);
          end
          else begin
-            $display("I/O started, writing to %d", dec.rd);
             mem_wr_reg <= dec.rd;
             state <= IO;
          end
@@ -78,10 +76,6 @@ module mkCPU #(Server#(Mem_Request, Word) dmem, Server#(Word, Word) imem) ();
       imem.request.put(nextpc);
       pc <= nextpc;
       state <= Run;
-   endrule
-
-   rule dump;
-      $display("CPU: ", fshow(state));
    endrule
 endmodule
 

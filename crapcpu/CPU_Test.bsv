@@ -10,7 +10,7 @@ import ISA::*;
 import Mem::*;
 
 module mkTB();
-   let cycles <- mkTestCycleCounter(100);
+   let cycles <- mkTestCycleCounter(10);
 
    let imem <- mkIMem("cpu_test_mem.hex");
    let dmem <- mkDMem();
