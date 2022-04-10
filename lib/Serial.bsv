@@ -1,9 +1,12 @@
 package Serial;
 
 import Cntrs::*;
+import FIFOF::*;
 import GetPut::*;
+import SpecialFIFOs::*;
 import Strobe::*;
 import StmtFSM::*;
+import Probe::*;
 
 interface SerialReceiver;
    interface Put#(bit) bit_in;
@@ -29,11 +32,15 @@ module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (SerialReceiver);
    // shift.
    Wire#(bit) rx_bit <- mkWire();
    Reg#(Bit#(8)) shift <- mkReg(0);
-   Wire#(Bit#(8)) finished_byte <- mkWire();
+   FIFOF#(Bit#(8)) out <- mkBypassFIFOF();
    let read_byte = seq
                       noAction; // discard start bit
                       repeat (8) shift <= {rx_bit, shift[7:1]};
-                      finished_byte <= shift; // discard stop bit, yield result.
+                      // discard stop bit, yield result if possible.
+                      if (out.notFull)
+                         out.enq(shift);
+                      else
+                         noAction;
                    endseq;
    let reader <- mkFSMWithPred(read_byte, middle_of_bit);
 
@@ -46,8 +53,9 @@ module mkSerialReceiver #(Integer clk_freq, Real baud_rate) (SerialReceiver);
    // Finally, the methods. One to push bits from the wire into the
    // UART, the other to read out bytes when they're available.
    interface Get byte_out;
-      method ActionValue#(Bit#(8)) get;
-         return finished_byte;
+      method ActionValue#(Bit#(8)) get if (out.notEmpty);
+         out.deq();
+         return out.first;
       endmethod
    endinterface
    interface Put bit_in;

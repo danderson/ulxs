@@ -68,8 +68,23 @@ module mkTransmitTest(FSM);
    mkConnection(toGet(asReg(b)), r.bit_in);
 
    let want = 8'b10110011;
+   let sandbag = 8'b01010101;
    let test = seq
                  t.byte_in.put(want);
+                 action
+                    let got <- r.byte_out.get();
+                    dynamicAssert(got == want, "wrong byte received");
+                 endaction
+                 // Test that the serial port keeps receiving, but
+                 // discards bytes if the output FIFO is full.
+                 t.byte_in.put(want); // A byte we will read
+                 t.byte_in.put(sandbag); // Will be dropped
+                 repeat (1000) noAction; // Give the receiver time to receive and drop.
+                 t.byte_in.put(want); // Only starts once sandbag has finished sending.
+                 action
+                    let got <- r.byte_out.get();
+                    dynamicAssert(got == want, "wrong byte received");
+                 endaction
                  action
                     let got <- r.byte_out.get();
                     dynamicAssert(got == want, "wrong byte received");

@@ -44,7 +44,7 @@ synth() {
 	# Generate Verilog from BSV
 	##################
 	phase "Bluespec to Verilog"
-	bsc -aggressive-conditions -check-assert -u -verilog -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:${project}:${bluelib}" "$project/Top.bsv"
+	bsc -aggressive-conditions -check-assert -u -verilog -info-dir "$testout" -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:${project}:${bluelib}" "$project/Top.bsv"
 
 	##################
 	# Synthesize Verilog
@@ -129,7 +129,7 @@ function runTest() {
 	testout="$buildout/test/${infile%%_*}"
 	mkdir -p "$testout"
 	prepare_hex "$testout"
-	bsc -aggressive-conditions -check-assert -u -sim -simdir "$testout" -bdir "$testout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/$infile"
+	bsc -show-schedule -aggressive-conditions -check-assert -u -sim -info-dir "$testout" -simdir "$testout" -bdir "$testout" -g "mkTB" -p "lib:${project}:${bluelib}" "$project/$infile"
 	(
 		set -eu
 		cd "$testout"
