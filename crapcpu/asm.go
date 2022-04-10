@@ -12,9 +12,21 @@ import (
 )
 
 func main() {
-	instrs, err := parse(os.Args[1])
+	instrs, labels, err := parse(os.Args[1])
 	if err != nil {
 		fatal("parsing %q: %v", os.Args[1], err)
+	}
+
+	for _, instr := range instrs {
+		if instr.Label == "" {
+			continue
+		}
+		imm, ok := labels[instr.Label]
+		if !ok {
+			fatal("reference to unknown label %q", instr.Label)
+		}
+		instr.HasImm = true
+		instr.Imm = imm
 	}
 
 	if err := assemble(os.Args[2], instrs); err != nil {
@@ -22,7 +34,7 @@ func main() {
 	}
 }
 
-func assemble(path string, insns []Instr) error {
+func assemble(path string, insns []*Instr) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -34,7 +46,7 @@ func assemble(path string, insns []Instr) error {
 		if fun == nil {
 			return fmt.Errorf("unknown mnemonic %q in %q", insn.Name, insn)
 		}
-		if err := fun(f, insn); err != nil {
+		if err := fun(f, *insn); err != nil {
 			return err
 		}
 	}
@@ -45,11 +57,14 @@ func assemble(path string, insns []Instr) error {
 	return nil
 }
 
+type Labels map[string]int
+
 type Instr struct {
 	Name   string
 	Regs   []int
 	HasImm bool
 	Imm    int
+	Label  string
 }
 
 func (i Instr) String() string {
@@ -212,34 +227,43 @@ func fatal(msg string, args ...any) {
 	os.Exit(1)
 }
 
-func parse(path string) ([]Instr, error) {
+func parse(path string) ([]*Instr, Labels, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("opening %q: %w", path, err)
+		return nil, nil, fmt.Errorf("opening %q: %w", path, err)
 	}
 	defer f.Close()
 
-	var ret []Instr
+	var (
+		instr  []*Instr
+		labels = Labels{}
+	)
 	s := bufio.NewScanner(f)
+	byteoff := 0
 	for s.Scan() {
 		t := strings.TrimSpace(s.Text())
 		if t == "" {
 			continue
 		}
-		i, err := parseLine(t)
-		if err != nil {
-			return nil, fmt.Errorf("parsing %q: %w", t, err)
+		if strings.HasSuffix(t, ":") {
+			labels[strings.TrimSuffix(t, ":")] = byteoff
+			continue
 		}
-		ret = append(ret, i)
+		i, err := parseInstr(t)
+		if err != nil {
+			return nil, nil, fmt.Errorf("parsing %q: %w", t, err)
+		}
+		instr = append(instr, &i)
+		byteoff += 2
 	}
 	if s.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return ret, nil
+	return instr, labels, nil
 }
 
-func parseLine(l string) (Instr, error) {
+func parseInstr(l string) (Instr, error) {
 	for _, cut := range []string{"[", "]", ","} {
 		l = strings.ReplaceAll(l, cut, " ")
 	}
@@ -248,7 +272,8 @@ func parseLine(l string) (Instr, error) {
 		Name: fs[0],
 	}
 	for _, arg := range fs[1:] {
-		if strings.HasPrefix(arg, "#") {
+		switch {
+		case strings.HasPrefix(arg, "#"):
 			if ret.HasImm {
 				return Instr{}, errors.New("multiple immediates not allowed")
 			}
@@ -258,12 +283,17 @@ func parseLine(l string) (Instr, error) {
 			}
 			ret.HasImm = true
 			ret.Imm = i
-		} else {
+		case strings.HasPrefix(arg, "r"):
 			r, err := register(arg)
 			if err != nil {
 				return Instr{}, err
 			}
 			ret.Regs = append(ret.Regs, r)
+		default:
+			if ret.Label != "" {
+				return Instr{}, errors.New("multiple labels not allowed")
+			}
+			ret.Label = arg
 		}
 	}
 
@@ -271,9 +301,6 @@ func parseLine(l string) (Instr, error) {
 }
 
 func register(s string) (int, error) {
-	if !strings.HasPrefix(s, "r") {
-		return 0, fmt.Errorf("invalid register specifier %q", s)
-	}
 	i, err := strconv.Atoi(s[1:])
 	if err != nil {
 		return 0, fmt.Errorf("register %q is not a number: %w", s, err)

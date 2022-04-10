@@ -4,5 +4,6 @@
 	ld r0,[r1,#0]
 	addi r0,r0,#10
 	st r0,[r1,#0]
-	ldi r0,#14
+	ldi r0,test
+test:
 	j r0,#0
