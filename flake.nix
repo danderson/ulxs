@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     davepkgs.url = "github:danderson/nixpkgs/danderson/bluespec";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -12,7 +12,7 @@
           system = system;
           config = { allowUnfree = true; };
         };
-        dave = import davepkgs {
+        daveblue = import davepkgs {
           system = system;
           config = { allowUnfree = true; };
         };
@@ -20,7 +20,7 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            dave.bluespec
+            daveblue.bluespec
             vscode
             dfu-util
             fujprog
