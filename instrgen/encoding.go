@@ -119,11 +119,6 @@ func (b bits) String() string {
 	return ret.String()
 }
 
-type encodedInstruction struct {
-	Raw      *parsedInstruction
-	Encoding *encoding
-}
-
 func computeEncodings(insns []*parsedInstruction, instructionWidth, registerWidth int) map[shape]*encoding {
 	encodings := map[shape]*encoding{}
 	counts := map[shape]int{}
@@ -181,6 +176,28 @@ perEnc:
 	}
 
 	return encodings
+}
+
+type encodedInstruction struct {
+	Raw      *parsedInstruction
+	Encoding *encoding
+	Opcode   int
+}
+
+func assignInstructions(insns []*parsedInstruction, encodings map[shape]*encoding) []*encodedInstruction {
+	opcodes := map[shape]int{}
+	ret := make([]*encodedInstruction, 0, len(insns))
+
+	for _, insn := range insns {
+		ret = append(ret, &encodedInstruction{
+			Raw:      insn,
+			Encoding: encodings[insn.Shape()],
+			Opcode:   opcodes[insn.Shape()],
+		})
+		opcodes[insn.Shape()]++
+	}
+
+	return ret
 }
 
 func addPrefixes(encodings map[shape]*encoding, instructionWidth int) {

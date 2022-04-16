@@ -19,8 +19,13 @@ func main() {
 	encodings := computeEncodings(insns, pragmas.InstructionBits, log2ceil(pragmas.NumRegisters))
 
 	arts := AsciiArt(encodings)
-
 	for _, art := range arts {
 		fmt.Println(art)
+	}
+
+	assigned := assignInstructions(insns, encodings)
+
+	for _, insn := range assigned {
+		fmt.Printf("%s\n  encoding=%s\n  opcode=%d\n", insn.Raw, insn.Encoding, insn.Opcode)
 	}
 }
