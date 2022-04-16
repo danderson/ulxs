@@ -1,0 +1,17 @@
+##num_registers 8
+##instruction_bits 16
+
+{add,sub,and,or,xor,shl,shr} rd,ra,rb
+{add,sub,and,or,xor,shl,shr} rd,#imm
+{add,sub,and,or,xor,shl,shr} rd,ra
+
+ld rd,ra,#imm
+ld rd,#imm
+
+st ra,rb,#imm
+
+jz ra,#imm
+j #imm
+
+halt
+int #imm
