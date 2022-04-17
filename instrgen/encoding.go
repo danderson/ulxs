@@ -225,7 +225,10 @@ func addPrefixes(encodings map[shape]*encoding, instructionWidth int) {
 		}
 	}
 	sort.Slice(leaves, func(i, j int) bool {
-		return leaves[i].Score < leaves[j].Score
+		if leaves[i].Score != leaves[j].Score {
+			return leaves[i].Score < leaves[j].Score
+		}
+		return leaves[i].Value.Name < leaves[j].Value.Name
 	})
 	var trees []*huffTree
 

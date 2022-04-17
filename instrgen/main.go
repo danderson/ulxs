@@ -18,12 +18,27 @@ func main() {
 
 	encodings := computeEncodings(insns, pragmas.InstructionBits, log2ceil(pragmas.NumRegisters))
 
-	// arts := AsciiArt(encodings)
-	// for _, art := range arts {
-	// 	fmt.Println(art)
-	// }
+	//arts := AsciiArt(encodings)
 
 	assigned := assignInstructions(insns, encodings)
+	decoder := genDecoder(assigned, encodings, pragmas.InstructionBits)
 
-	fmt.Println(genDecoder(assigned, encodings, pragmas.InstructionBits))
+	prog, err := parseAsm(os.Args[2])
+	if err != nil {
+		fatal("parsing asm: %v", err)
+	}
+
+	compiled, err := assemble(prog, assigned)
+	if err != nil {
+		fatal("assembling program: %v", err)
+	}
+
+	_ = decoder
+	fmt.Println(string(compiled))
+	if err := os.WriteFile("RawDecoder.bsv", decoder, 0644); err != nil {
+		fatal("writing decoder: %v", err)
+	}
+	if err := os.WriteFile(os.Args[3], compiled, 0644); err != nil {
+		fatal("writing decoder: %v", err)
+	}
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strings"
 )
 
-func genDecoder(insns []*encodedInstruction, encodings map[shape]*encoding, instructionWidth int) string {
-	var ret strings.Builder
+func genDecoder(insns []*encodedInstruction, encodings map[shape]*encoding, instructionWidth int) []byte {
+	var ret bytes.Buffer
 
 	names := globalOpcodeNames(insns)
 	largestPrefix := 0
@@ -102,7 +103,7 @@ func genDecoder(insns []*encodedInstruction, encodings map[shape]*encoding, inst
 	ret.WriteString("endfunction\n\n")
 
 	ret.WriteString("endpackage\n")
-	return ret.String()
+	return ret.Bytes()
 }
 
 func orderedEncodings(encodings map[shape]*encoding) []*encoding {
