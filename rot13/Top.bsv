@@ -26,10 +26,10 @@ module mkTop (ITop);
 
    function Bit#(8) rot13(Bit#(8) v);
       UInt#(8) i = unpack(v);
-      if (i >= 65 && i <= 90)
-         return pack(((i-65+13)%26)+65);
-      else if (i >= 97 && i <= 122)
-         return pack(((i-97+13)%26)+97);
+      if ((i >= 65 && i <= 77) || (i >= 97 && i <= 109))
+         return pack(i+13);
+      else if ((i >= 78 && i <= 90) || (i >= 110 && i <= 122))
+         return pack(i-13);
       else
          return v;
    endfunction
