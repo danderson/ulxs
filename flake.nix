@@ -1,18 +1,13 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    davepkgs.url = "github:danderson/nixpkgs/danderson/bluespec";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, davepkgs, flake-utils, ... }:
+  outputs = { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
-          system = system;
-          config = { allowUnfree = true; };
-        };
-        daveblue = import davepkgs {
           system = system;
           config = { allowUnfree = true; };
         };
@@ -20,12 +15,12 @@
       {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            daveblue.bluespec
+            bluespec
             vscode
             dfu-util
             fujprog
             git
-            go_1_18
+            go_1_22
             gotools
             gtkwave
             imagemagick
@@ -33,7 +28,6 @@
             openfpgaloader
             picocom
             python3
-            redo-apenwarr
             symbiyosys
             trellis
             verilator
@@ -41,6 +35,7 @@
             yices
             yosys
             z3
+            kgraphviewer
           ];
         };
       });

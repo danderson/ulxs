@@ -44,7 +44,7 @@ synth() {
 	# Generate Verilog from BSV
 	##################
 	phase "Bluespec to Verilog"
-	bsc -aggressive-conditions -check-assert -u -verilog -info-dir "$testout" -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:${project}:${bluelib}" "$project/Top.bsv"
+	bsc -aggressive-conditions -check-assert -u -verilog -info-dir "$buildout" -vdir "$buildout" -bdir "$buildout" -g "mkTop" -p "lib:${project}:${bluelib}" "$project/Top.bsv"
 
 	##################
 	# Synthesize Verilog
@@ -71,18 +71,20 @@ synth() {
 	cat >"$buildout/synth.ys" <<EOF
 read_verilog -defer -sv $libFiles $buildout/mkTop.v
 hierarchy -top mkTop
-scratchpad -set abd9.D 20000
-scratchpad -copy abc9.script.flow3 abc9.script
 EOF
+#scratchpad -set abd9.D 20000
+#scratchpad -copy abc9.script.flow3 abc9.script
+    logflag="-l $buildout/yosys.log -Q -v0"
 	if [ "$action" = "shell" ]; then
 		echo "shell" >>"$buildout/synth.ys"
+        logflag=""
 	else
 		echo "synth_ecp5 -abc9 -top mkTop -json $buildout/Top.json" >>"$buildout/synth.ys"
 	fi
 	prepare_hex "$buildout"
 	(
 		cd "$buildout"
-		yosys -l "$buildout/yosys.log" -v0 -Q -T "$buildout/synth.ys"
+		yosys $logflag -T "$buildout/synth.ys"
 	)
 
 	if [ "$action" = "shell" ]; then
