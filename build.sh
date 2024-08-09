@@ -72,8 +72,6 @@ synth() {
 read_verilog -defer -sv $libFiles $buildout/mkTop.v
 hierarchy -top mkTop
 EOF
-#scratchpad -set abd9.D 20000
-#scratchpad -copy abc9.script.flow3 abc9.script
     logflag="-l $buildout/yosys.log -Q -v0"
 	if [ "$action" = "shell" ]; then
 		echo "shell" >>"$buildout/synth.ys"
